@@ -21,7 +21,7 @@ public class Pagination {
     private int startPage;
     private int endPage;
 
-    public Pagination(Page<Customer> customerList, int startPage, int endPage) {
+    public Pagination(Page<?> customerList, int startPage, int endPage) {
         this.totalPages = customerList.getTotalPages();
         this.totalElements = customerList.getTotalElements();
         this.currentPage = customerList.getNumber();

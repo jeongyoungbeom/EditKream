@@ -27,5 +27,6 @@ public class BoardApiResponse {
         this.content = board.getContent();
         this.registrant = board.getRegistrant();
         this.category  = board.getCategory();
+        this.regdate = board.getRegdate();
     }
 }
