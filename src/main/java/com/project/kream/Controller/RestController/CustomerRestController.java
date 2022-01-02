@@ -107,12 +107,6 @@ public class CustomerRestController extends CrudController<CustomerApiRequest, C
         return customerService.dataList(request, pageable);
     }
 
-    // 이미지 변경
-//    @PatchMapping("/api/customer_image_update")
-//    public Header<CustomerApiResponse> imageUpdate(@RequestBody Header<CustomerApiRequest> request) {
-//        return customerService.imageUpdate(request);
-//    }
-
     // 회원 탈퇴
     @DeleteMapping("/api/customer_delete/{id}")
     public Header<CustomerApiResponse> delete(@PathVariable Long id){

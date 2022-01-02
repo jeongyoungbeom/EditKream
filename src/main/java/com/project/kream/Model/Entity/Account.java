@@ -8,7 +8,6 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @SequenceGenerator(
         name="seq_account",
@@ -27,4 +26,17 @@ public class Account {
     @ManyToOne(fetch = FetchType.LAZY)
     private Customer customer;
 
+    @Builder
+    public Account(String bank, String accountNumber, String name, Customer customer) {
+        this.bank = bank;
+        this.accountNumber = accountNumber;
+        this.name = name;
+        this.customer = customer;
+    }
+
+    public void update(String bank, String accountNumber, String name) {
+        this.bank = bank;
+        this.accountNumber = accountNumber;
+        this.name = name;
+    }
 }
