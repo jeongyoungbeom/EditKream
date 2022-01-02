@@ -4,12 +4,12 @@ import com.project.kream.Model.enumclass.BoardCategory;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @SequenceGenerator(
         name="seq_board",
@@ -28,4 +28,18 @@ public class Board extends DateEntity{
     @Enumerated(EnumType.STRING)
     private BoardCategory category;
 
+    @Builder
+    public Board(String title, String content, String registrant, BoardCategory category) {
+        this.title = title;
+        this.content = content;
+        this.registrant = registrant;
+        this.category = category;
+    }
+
+    public void update(String title, String content, String registrant, BoardCategory category){
+        this.title = title;
+        this.content = content;
+        this.registrant = registrant;
+        this.category = category;
+    }
 }

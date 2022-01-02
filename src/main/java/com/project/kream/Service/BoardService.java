@@ -25,49 +25,35 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
     private final BoardRepository boardRepository;
     private final BoardSpecification boardSpecification;
 
-    public Header<BoardApiResponse> create(Header<BoardApiRequest> request) {
+    public Long create(Header<BoardApiRequest> request) {
         BoardApiRequest boardApiRequest = request.getData();
-
-        Board board = Board.builder()
-                .category(boardApiRequest.getCategory())
-                .title(boardApiRequest.getTitle())
-                .content(boardApiRequest.getContent())
-                .registrant(boardApiRequest.getRegistrant())
-                .build();
-        Board newboard = baseRepository.save(board);
-        return Header.OK(response(newboard));
+        Board board = boardRepository.save(boardApiRequest.toEntity());
+        return board.getId();
     }
 
 
     public Header<BoardApiResponse> read(Long id){
-        return baseRepository.findById(id)
-                .map(board -> response(board))
-                .map(Header::OK)
-                .orElseGet(
-                        () -> Header.ERROR("데이터없음")
-                );
+//        return baseRepository.findById(id)
+//                .map(board -> response(board))
+//                .map(Header::OK)
+//                .orElseGet(
+//                        () -> Header.ERROR("데이터없음")
+//                );
+        Board board = boardRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+        return Header.OK(new BoardApiResponse(board));
     }
 
-    public Header<BoardApiResponse> update(Header<BoardApiRequest> request) {
+    public Long update(Header<BoardApiRequest> request) {
         BoardApiRequest boardApiRequest = request.getData();
-        Optional<Board> optionalBoard = baseRepository.findById(boardApiRequest.getId());
-        return optionalBoard.map(board ->{
-                    board.setCategory(boardApiRequest.getCategory());
-                    board.setTitle(boardApiRequest.getTitle());
-                    board.setContent(boardApiRequest.getContent());
-                    board.setRegistrant(boardApiRequest.getRegistrant());
-            return board;
-        }).map(board -> baseRepository.save(board))
-                .map(board -> response(board))
-                .map(Header::OK)
-                .orElseGet(() -> Header.ERROR("데이터가 없습니다."));
-
+        Board board = boardRepository.getById(boardApiRequest.getId());
+        board.update(boardApiRequest.getTitle(), boardApiRequest.getContent(), boardApiRequest.getRegistrant(),boardApiRequest.getCategory());
+        return board.getId();
     }
 
     public Header<List<BoardApiResponse>> List(Pageable pageable){
         Page<Board> boardList = baseRepository.findAll(pageable);
         List<BoardApiResponse> boardApiResponseList = boardList.stream()
-                .map(notice -> response(notice))
+                .map(BoardApiResponse::new)
                 .collect(Collectors.toList());
 
         int countPage = 5;
@@ -92,15 +78,7 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
         Page<Board> boardList = boardRepository.notice(pageable);
 
         List<BoardSearchApiResponse> boardSearchApiResponseList = boardList.stream()
-                .map(board -> {
-                    BoardSearchApiResponse boardSearchApiResponse = BoardSearchApiResponse.builder()
-                            .id(board.getId())
-                            .boardCategory(board.getCategory())
-                            .title(board.getTitle())
-                            .regdate(board.getRegdate())
-                            .build();
-                    return boardSearchApiResponse;
-                }).collect(Collectors.toList());
+                .map(BoardSearchApiResponse::new).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((boardList.getNumber()) / countPage) * countPage + 1;
@@ -125,16 +103,7 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
         Page<Board> boardList = boardRepository.faq(pageable);
 
         List<BoardFaqApiResponse> BoardFaqApiResponseList = boardList.stream()
-                .map(board -> {
-                    BoardFaqApiResponse boardFaqApiResponse = BoardFaqApiResponse.builder()
-                            .id(board.getId())
-                            .boardCategory(board.getCategory())
-                            .title(board.getTitle())
-                            .content(board.getContent())
-                            .regdate(board.getRegdate())
-                            .build();
-                    return boardFaqApiResponse;
-                }).collect(Collectors.toList());
+                .map(BoardFaqApiResponse::new).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((boardList.getNumber()) / countPage) * countPage + 1;
@@ -158,15 +127,7 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
         Page<Board> boardList = boardSpecification.searchCustomerList(request, pageable);
 
         List<BoardSearchApiResponse> boardSearchApiResponseList = boardList.stream()
-                .map(board -> {
-                    BoardSearchApiResponse boardSearchApiResponse = BoardSearchApiResponse.builder()
-                            .id(board.getId())
-                            .boardCategory(board.getCategory())
-                            .title(board.getTitle())
-                            .regdate(board.getRegdate())
-                            .build();
-                    return boardSearchApiResponse;
-                }).collect(Collectors.toList());
+                .map(BoardSearchApiResponse::new).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((boardList.getNumber()) / countPage) * countPage + 1;
@@ -186,24 +147,23 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
         return Header.OK(boardSearchApiResponseList, pagination);
     }
 
-    private BoardApiResponse response(Board board){
-        BoardApiResponse userApiResponse = BoardApiResponse.builder()
-                .id(board.getId())
-                .category(board.getCategory())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .registrant(board.getRegistrant())
-                .regdate(board.getRegdate())
-                .build();
-        return userApiResponse;
-    }
+//    public Long delete(Long id){
+////        Optional<Board> boardOptional = baseRepository.findById(id);
+////        return boardOptional.map(board ->{
+////            baseRepository.delete(board);
+////            return Header.OK();
+////        }).orElseGet(() -> Header.ERROR("데이터 없음"));
+//        Board board = boardRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글 없음"));
+//
+//    }
 
-    public Header delete(Long id){
-        Optional<Board> boardOptional = baseRepository.findById(id);
-        return boardOptional.map(board ->{
-            baseRepository.delete(board);
-            return Header.OK();
-        }).orElseGet(() -> Header.ERROR("데이터 없음"));
+    public int delete(Long id){
+        Optional<Board> board = boardRepository.findById(id);
+        if(board.isPresent()){
+            boardRepository.delete(board.get());
+            return 1;
+        }
+        return 0;
     }
 
 //    public Header<List<BoardApiResponse>> paging(Pageable pageable){
@@ -223,7 +183,7 @@ public class BoardService extends BaseService<BoardApiRequest, BoardApiResponse,
     public Header<List<BoardApiResponse>> categoryList(BoardCategory category){
         List<Board> boardList = boardRepository.findAllByCategory(category);
         List<BoardApiResponse> boardApiResponseList = boardList.stream()
-                .map(board -> response(board))
+                .map(BoardApiResponse::new)
                 .collect(Collectors.toList());
         return Header.OK(boardApiResponseList);
     }
