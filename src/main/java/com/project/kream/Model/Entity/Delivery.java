@@ -37,4 +37,10 @@ public class Delivery extends DateEntity {
         this.trackNum = trackNum;
         this.purchase = purchase;
     }
+
+    public void update(DeliveryStatus deliveryStatus, String devCompany, Long trackNum) {
+        this.deliveryStatus = deliveryStatus;
+        this.devCompany = devCompany;
+        this.trackNum = trackNum;
+    }
 }
