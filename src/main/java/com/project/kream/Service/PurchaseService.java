@@ -31,40 +31,18 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
     private final CardInfoRepository cardInfoRepository;
 
 
-    public Header<PurchaseApiResponse> create(Header<PurchaseApiRequest> request) {
+    public Long create(Header<PurchaseApiRequest> request) {
+        System.out.println(request);
         PurchaseApiRequest purchaseApiRequest = request.getData();
         Purchase newpurchase = null;
-        if(purchaseApiRequest.getSalasId() == 0) {
-            Purchase purchaseEntity = Purchase.builder()
-                    .product(productRepository.getById(purchaseApiRequest.getProductId()))
-                    .customer(customerRepository.getById(purchaseApiRequest.getCustomerId()))
-                    .price(purchaseApiRequest.getPrice())
-                    .period(purchaseApiRequest.getPeriod())
-                    .sizeType(purchaseApiRequest.getSizeType())
-                    .status1(purchaseApiRequest.getStatus1())
-                    .status2(purchaseApiRequest.getStatus2())
-                    .status3(purchaseApiRequest.getStatus3())
-                    .address(addressRepository.getById(purchaseApiRequest.getAddressId()))
-                    .cardInfo(cardInfoRepository.getById(purchaseApiRequest.getCardId()))
-                    .build();
-            newpurchase = baseRepository.save(purchaseEntity);
-        }else{
-            Purchase purchaseEntity = Purchase.builder()
-                    .product(productRepository.getById(purchaseApiRequest.getProductId()))
-                    .customer(customerRepository.getById(purchaseApiRequest.getCustomerId()))
-                    .sales(salesRepository.getById(purchaseApiRequest.getSalasId()))
-                    .price(purchaseApiRequest.getPrice())
-                    .period(purchaseApiRequest.getPeriod())
-                    .sizeType(purchaseApiRequest.getSizeType())
-                    .status1(purchaseApiRequest.getStatus1())
-                    .status2(purchaseApiRequest.getStatus2())
-                    .status3(purchaseApiRequest.getStatus3())
-                    .address(addressRepository.getById(purchaseApiRequest.getAddressId()))
-                    .cardInfo(cardInfoRepository.getById(purchaseApiRequest.getCardId()))
-                    .build();
+        Long purcharseId = 0L;
+        if(purchaseApiRequest.getSalasId() == null) {
+            purcharseId = purchaseRepository.save(purchaseApiRequest.toEntity(productRepository.getById(purchaseApiRequest.getProductId()), customerRepository.getById(purchaseApiRequest.getCustomerId()), addressRepository.getById(purchaseApiRequest.getAddressId()),cardInfoRepository.getById(purchaseApiRequest.getCardInfo()))).getId();
 
-            newpurchase = baseRepository.save(purchaseEntity);
-            salesRepository.findByProductIdAndId(newpurchase.getId(), SalesStatus1.진행중, SalesStatus2.발송요청, purchaseApiRequest.getSalasId());
+        }else{
+            // 즉시구매
+            purcharseId = purchaseRepository.save(purchaseApiRequest.toEntityTo(productRepository.getById(purchaseApiRequest.getProductId()), customerRepository.getById(purchaseApiRequest.getCustomerId()), salesRepository.getById(purchaseApiRequest.getSalasId()), addressRepository.getById(purchaseApiRequest.getAddressId()),cardInfoRepository.getById(purchaseApiRequest.getCardInfo()))).getId();
+//            salesRepository.findByProductIdAndId(newpurchase.getId(), SalesStatus1.진행중, SalesStatus2.발송요청, purchaseApiRequest.getSalasId());
 
             if(purchaseApiRequest.getStatus1().equals(PurchaseStatus1.진행중)){
                 Transaction transaction = Transaction.builder()
@@ -75,28 +53,15 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
                 transactionRepository.save(transaction);
             }
         }
-
-        return Header.OK(response(newpurchase));
+        return purcharseId;
     }
 
-    public Header<PurchaseApiResponse> update(Header<PurchaseApiRequest> request) {
+    public Long update(Header<PurchaseApiRequest> request) {
         PurchaseApiRequest purchaseApiRequest = request.getData();
-        Optional<Purchase> purchase = purchaseRepository.findById(purchaseApiRequest.getId());
+        Purchase purchase = purchaseRepository.getById(purchaseApiRequest.getId());
 
-        return purchase.map(buy -> {
-                    buy.setProduct(productRepository.getById(purchaseApiRequest.getProductId()));
-                    buy.setCustomer(customerRepository.getById(purchaseApiRequest.getCustomerId()));
-                    buy.setPrice(purchaseApiRequest.getPrice());
-                    buy.setPeriod(purchaseApiRequest.getPeriod());
-                    buy.setSizeType(purchaseApiRequest.getSizeType());
-                    buy.setStatus1(purchaseApiRequest.getStatus1());
-                    buy.setStatus2(purchaseApiRequest.getStatus2());
-                    buy.setStatus3(purchaseApiRequest.getStatus3());
-                    return buy;
-                }).map(buy -> baseRepository.save(buy))
-                .map(buy -> response(buy))
-                .map(Header::OK)
-                .orElseGet(() -> Header.ERROR("데이터가 없습니다"));
+        purchase.update(purchase.getPrice(), purchase.getPeriod(), purchase.getSizeType(), purchase.getStatus1(), purchase.getStatus2(), purchase.getStatus3(), purchase.getProduct(), purchase.getCustomer(), purchase.getDeliveryList(), purchase.getAddress(), purchase.getCardInfo(), purchase.getSales());
+        return purchase.getId();
     }
 
     public Header<List<PurchaseListApiResponse>> List(Header<PurchaseApiRequest> request, Pageable pageable){
@@ -141,30 +106,35 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         return Header.OK(purchaseListApiResponseList,pagination);
     }
 
-    public Header delete(Long id){
+    public int delete(Long id){
         Optional<Purchase> purchase = purchaseRepository.findById(id);
-        return purchase.map(buy ->{
-            baseRepository.delete(buy);
-            return Header.OK();
-        }).orElseGet(() -> Header.ERROR("데이터없음"));
+//        return purchase.map(buy ->{
+//            baseRepository.delete(buy);
+//            return Header.OK();
+//        }).orElseGet(() -> Header.ERROR("데이터없음"));
+        if(purchase.isPresent()){
+            purchaseRepository.delete(purchase.get());
+            return 1;
+        }
+        return 0;
     }
 
-    public PurchaseApiResponse response(Purchase purchase){
-        PurchaseApiResponse purchaseApiResponse = PurchaseApiResponse.builder()
-                .id(purchase.getId())
-                .productId(purchase.getProduct().getId())
-                .customerId(purchase.getCustomer().getId())
-                .price(purchase.getPrice())
-                .period(purchase.getPeriod())
-                .proimg(purchase.getProduct().getProImgList().get(0).getFilePath())
-                .sizeType(purchase.getSizeType())
-                .status1(purchase.getStatus1())
-                .status2(purchase.getStatus2())
-                .status3(purchase.getStatus3())
-                .regdate(purchase.getRegdate())
-                .build();
-        return purchaseApiResponse;
-    }
+//    public PurchaseApiResponse response(Purchase purchase){
+//        PurchaseApiResponse purchaseApiResponse = PurchaseApiResponse.builder()
+//                .id(purchase.getId())
+//                .productId(purchase.getProduct().getId())
+//                .customerId(purchase.getCustomer().getId())
+//                .price(purchase.getPrice())
+//                .period(purchase.getPeriod())
+//                .proimg(purchase.getProduct().getProImgList().get(0).getFilePath())
+//                .sizeType(purchase.getSizeType())
+//                .status1(purchase.getStatus1())
+//                .status2(purchase.getStatus2())
+//                .status3(purchase.getStatus3())
+//                .regdate(purchase.getRegdate())
+//                .build();
+//        return purchaseApiResponse;
+//    }
 
     // 관리자 입찰현황
     public Header<PurchaseAdminApiResponse> purchaseinfo(Long id){
