@@ -28,7 +28,6 @@ public class WithdrawalService extends BaseService<WithdrawalApiRequest, Withdra
                 .hp(withdrawalApiRequest.getHp())
                 .build();
         Withdrawal newWithdrawal = baseRepository.save(withdrawal);
-
         return Header.OK(response(newWithdrawal));
     }
 

@@ -1,6 +1,5 @@
 package com.project.kream.Model.response;
 
-import com.project.kream.Model.Entity.Purchase;
 import com.project.kream.Model.enumclass.PurchaseStatus3;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PurchaseAdminApiResponse {
     private String userid;
+    private String hp;
     private LocalDateTime regdate;
     private String productName;
     private Long productId;
@@ -25,18 +25,4 @@ public class PurchaseAdminApiResponse {
     private String cardCompany;
     private PurchaseStatus3 status3;
     private Long price;
-
-    public PurchaseAdminApiResponse(Purchase purchase) {
-        this.userid = purchase.getCustomer().getUserid();
-        this.regdate = purchase.getRegdate();
-        this.productName = purchase.getProduct().getName();
-        this.productId = purchase.getProduct().getId();
-        this.brand = purchase.getProduct().getBrand();
-        this.size = purchase.getSizeType();
-        this.email = purchase.getCustomer().getEmail();
-        this.cardNumber = purchase.getCardInfo().getCardNumber();
-        this.cardCompany = purchase.getCardInfo().getCardCompany();
-        this.status3 = purchase.getStatus3();
-        this.price = purchase.getPrice();
-    }
 }

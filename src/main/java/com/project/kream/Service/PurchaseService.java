@@ -5,6 +5,8 @@ import com.project.kream.Model.Header;
 import com.project.kream.Model.Pagination;
 import com.project.kream.Model.enumclass.PurchaseStatus1;
 import com.project.kream.Model.enumclass.PurchaseStatus2;
+import com.project.kream.Model.enumclass.SalesStatus1;
+import com.project.kream.Model.enumclass.SalesStatus2;
 import com.project.kream.Model.request.PurchaseApiRequest;
 import com.project.kream.Model.response.*;
 import com.project.kream.Repository.*;
@@ -40,6 +42,7 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         }else{
             // 즉시구매
             purcharseId = purchaseRepository.save(purchaseApiRequest.toEntityTo(productRepository.getById(purchaseApiRequest.getProductId()), customerRepository.getById(purchaseApiRequest.getCustomerId()), salesRepository.getById(purchaseApiRequest.getSalasId()), addressRepository.getById(purchaseApiRequest.getAddressId()),cardInfoRepository.getById(purchaseApiRequest.getCardInfo()))).getId();
+//            salesRepository.findByProductIdAndId(newpurchase.getId(), SalesStatus1.진행중, SalesStatus2.발송요청, purchaseApiRequest.getSalasId());
 
             if(purchaseApiRequest.getStatus1().equals(PurchaseStatus1.진행중)){
                 Transaction transaction = Transaction.builder()
@@ -65,7 +68,21 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         PurchaseApiRequest purchaseApiRequest = request.getData();
         Page<Purchase> purchaseList = purchaseRepository.SearchList(purchaseApiRequest.getId(), purchaseApiRequest.getStatus2(), purchaseApiRequest.getStatus3(), purchaseApiRequest.getProductId(),purchaseApiRequest.getRegdate1(), purchaseApiRequest.getRegdate2(), pageable);
         List<PurchaseListApiResponse> purchaseListApiResponseList = purchaseList.stream()
-                .map(PurchaseListApiResponse::new).collect(Collectors.toList());
+                .map(purchase -> {
+                    Product product = purchase.getProduct();
+                    Address address = purchase.getAddress();
+
+                    PurchaseListApiResponse purchaseListApiResponse = PurchaseListApiResponse.builder()
+                            .productId(product.getId())
+                            .purchaseId(purchase.getId())
+                            .regdate(purchase.getRegdate())
+                            .status3(purchase.getStatus3())
+                            .status2(purchase.getStatus2())
+                            .name(address.getName())
+                            .build();
+
+                    return purchaseListApiResponse;
+                }).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((purchaseList.getNumber()) / countPage) * countPage + 1;
@@ -73,17 +90,51 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         if(endPage > purchaseList.getTotalPages()) {
             endPage = purchaseList.getTotalPages();
         }
-        return Header.OK(purchaseListApiResponseList, new Pagination(purchaseList, startPage, endPage));
+
+        Pagination pagination = Pagination.builder()
+//                .totalPages(purchaseList.getTotalPages())
+//                .totalElements(purchaseList.getTotalElements())
+//                .currentPage(purchaseList.getNumber())
+//                .build();
+                .totalPages(purchaseList.getTotalPages())
+                .totalElements(purchaseList.getTotalElements())
+                .currentPage(purchaseList.getNumber())
+                .currentElements(purchaseList.getNumberOfElements())
+                .startPage(startPage)
+                .endPage(endPage)
+                .build();
+        return Header.OK(purchaseListApiResponseList,pagination);
     }
 
     public int delete(Long id){
         Optional<Purchase> purchase = purchaseRepository.findById(id);
+//        return purchase.map(buy ->{
+//            baseRepository.delete(buy);
+//            return Header.OK();
+//        }).orElseGet(() -> Header.ERROR("데이터없음"));
         if(purchase.isPresent()){
             purchaseRepository.delete(purchase.get());
             return 1;
         }
         return 0;
     }
+
+//    public PurchaseApiResponse response(Purchase purchase){
+//        PurchaseApiResponse purchaseApiResponse = PurchaseApiResponse.builder()
+//                .id(purchase.getId())
+//                .productId(purchase.getProduct().getId())
+//                .customerId(purchase.getCustomer().getId())
+//                .price(purchase.getPrice())
+//                .period(purchase.getPeriod())
+//                .proimg(purchase.getProduct().getProImgList().get(0).getFilePath())
+//                .sizeType(purchase.getSizeType())
+//                .status1(purchase.getStatus1())
+//                .status2(purchase.getStatus2())
+//                .status3(purchase.getStatus3())
+//                .regdate(purchase.getRegdate())
+//                .build();
+//        return purchaseApiResponse;
+//    }
 
     // 관리자 입찰현황
     public Header<PurchaseAdminApiResponse> purchaseinfo(Long id){
@@ -92,7 +143,21 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         Product product = purchase.getProduct();
         CardInfo cardInfo = purchase.getCardInfo();
 
-        return Header.OK(new PurchaseAdminApiResponse(purchase));
+        PurchaseAdminApiResponse purchaseAdminApiResponse = PurchaseAdminApiResponse.builder()
+                .userid(customer.getUserid())
+                .productId(product.getId())
+                .productName(product.getKorName())
+                .brand(product.getBrand())
+                .size(purchase.getSizeType())
+                .price(purchase.getPrice())
+                .regdate(purchase.getRegdate())
+                .email(customer.getEmail())
+                .cardNumber(cardInfo.getCardNumber())
+                .cardCompany(cardInfo.getCardCompany())
+                .status3(purchase.getStatus3())
+                .build();
+
+        return Header.OK(purchaseAdminApiResponse);
     }
 
 
@@ -100,12 +165,11 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
     public Header<PurchaseUserApiResponse> detailInfo(Long id){
         Purchase purchase = purchaseRepository.getById(id);
 
-//        Delivery delivery = purchase.getDeliveryList().get(0);
-
+        Delivery delivery = purchase.getDeliveryList().get(0);
         String devCompany;
         Long trackNum;
 
-        if (purchase.getDeliveryList().isEmpty()) {
+        if (delivery==null) {
             devCompany = "정보없음";
             trackNum = 0L;
         }else{
@@ -114,9 +178,33 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         }
 
         Long salesPrice = salesRepository.findBySizeTypeAndProductId(purchase.getSizeType(), purchase.getProduct().getId());
+
         Long purchasePrice = purchaseRepository.findBySizeTypeAndProductId(purchase.getSizeType(), purchase.getProduct().getId());
 
-        return Header.OK(new PurchaseUserApiResponse(purchase, devCompany, trackNum, salesPrice, purchasePrice));
+        PurchaseUserApiResponse purchaseUserApiResponse = PurchaseUserApiResponse.builder()
+                .orderNumber(purchase.getId())
+                .period(purchase.getPeriod())
+                .status1(purchase.getStatus1())
+                .status2(purchase.getStatus2())
+                .productId(purchase.getProduct().getId())
+                .productName(purchase.getProduct().getName())
+                .size(purchase.getSizeType())
+                .originFileName(purchase.getProduct().getProImgList().get(0).getOrigFileName())
+                .price(purchase.getPrice())
+                .regdate(purchase.getRegdate())
+                .name(purchase.getAddress().getName())
+                .hp(purchase.getAddress().getHp())
+                .cardNumber(purchase.getCardInfo().getCardNumber())
+                .cardCompany(purchase.getCardInfo().getCardCompany())
+                .zipcode(purchase.getAddress().getZipcode())
+                .address1(purchase.getAddress().getDetail1())
+                .address2(purchase.getAddress().getDetail2())
+                .devCompany(devCompany)
+                .trackNum(trackNum)
+                .salesPrice(salesPrice)
+                .purchasePrice(purchasePrice)
+                .build();
+        return Header.OK(purchaseUserApiResponse);
 
     }
 
@@ -124,16 +212,26 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
     public Header<List<PurchaseNopayApiResponse>> purchaseList(Pageable pageable){
         Page<Purchase> purchaseList = purchaseRepository.findAllByStatus2(PurchaseStatus2.미결제, pageable);
         List<PurchaseNopayApiResponse> purchaseNopayApiResponseList = purchaseList.stream()
-                .map(PurchaseNopayApiResponse::new).collect(Collectors.toList());
+                .map(purchase -> {
+                    PurchaseNopayApiResponse purchaseNopayApiResponse = PurchaseNopayApiResponse.builder()
+                            .id(purchase.getId())
+                            .customerId(purchase.getCustomer().getId())
+                            .productId(purchase.getProduct().getId())
+                            .purchaseStatus2(purchase.getStatus2())
+                            .userid(purchase.getCustomer().getUserid())
+                            .name(purchase.getAddress().getName())
+                            .regdate(purchase.getRegdate())
+                            .build();
+                    return purchaseNopayApiResponse;
+                }).collect(Collectors.toList());
 
-        int countPage = 5;
-        int startPage = ((purchaseList.getNumber()) / countPage) * countPage + 1;
-        int endPage = startPage + countPage - 1;
-        if(endPage > purchaseList.getTotalPages()) {
-            endPage = purchaseList.getTotalPages();
-        }
+        Pagination pagination = Pagination.builder()
+                .totalPages(purchaseList.getTotalPages())
+                .totalElements(purchaseList.getTotalElements())
+                .currentPage(purchaseList.getNumber())
+                .build();
 
-        return Header.OK(purchaseNopayApiResponseList, new Pagination(purchaseList, startPage, endPage));
+        return Header.OK(purchaseNopayApiResponseList, pagination);
     }
 
 
