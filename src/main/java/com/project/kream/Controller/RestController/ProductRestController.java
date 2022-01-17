@@ -29,7 +29,7 @@ public class ProductRestController extends CrudController<ProductApiRequest, Pro
 
     //상품 업데이트
     @PutMapping("/api/pro_update")
-    public Header<ProductApiResponse> update(@RequestPart(value = "data") ProductApiRequest request) {
+    public Header<Long> update(@RequestPart(value = "data") ProductApiRequest request) {
         return productService.update(request);
     }
 
@@ -124,7 +124,7 @@ public class ProductRestController extends CrudController<ProductApiRequest, Pro
 
     // 사용자 검색 큰 리스트
     @PostMapping("/api/pro_usersearchlist/{keywords}")
-    public Header<List<ProductUserListApiResponse>> userSearchList(@PathVariable String keywords, @PageableDefault(size = 40, sort={"id"}, direction= Sort.Direction.DESC) Pageable pageable){
+    public Header<List<ProductUserBigListApiResponse>> userSearchList(@PathVariable String keywords, @PageableDefault(size = 40, sort={"id"}, direction= Sort.Direction.DESC) Pageable pageable){
         return productService.userSearchList(keywords, pageable);
     }
 
