@@ -31,4 +31,5 @@ public class PurchaseNopayApiResponse {
         this.regdate = purchase.getRegdate();
         this.purchaseStatus2 = purchase.getStatus2();
     }
+    //
 }

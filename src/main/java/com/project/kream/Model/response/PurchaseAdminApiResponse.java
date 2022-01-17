@@ -27,5 +27,5 @@ public class PurchaseAdminApiResponse {
     private PurchaseStatus3 status3;
     private Long price;
 
-
+//
 }

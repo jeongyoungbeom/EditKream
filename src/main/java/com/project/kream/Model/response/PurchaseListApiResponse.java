@@ -32,4 +32,5 @@ public class PurchaseListApiResponse {
         this.status3 = purchase.getStatus3();
         this.name = purchase.getAddress().getName();
     }
+    //
 }

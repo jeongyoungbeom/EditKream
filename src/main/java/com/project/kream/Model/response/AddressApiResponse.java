@@ -37,4 +37,5 @@ public class AddressApiResponse {
         this.flag = address.getFlag();
         this.regdate = address.getRegdate();
     }
+    //
 }
