@@ -5,8 +5,6 @@ import com.project.kream.Model.Header;
 import com.project.kream.Model.Pagination;
 import com.project.kream.Model.enumclass.PurchaseStatus1;
 import com.project.kream.Model.enumclass.PurchaseStatus2;
-import com.project.kream.Model.enumclass.SalesStatus1;
-import com.project.kream.Model.enumclass.SalesStatus2;
 import com.project.kream.Model.request.PurchaseApiRequest;
 import com.project.kream.Model.response.*;
 import com.project.kream.Repository.*;
