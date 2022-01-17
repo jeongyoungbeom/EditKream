@@ -42,7 +42,6 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         }else{
             // 즉시구매
             purcharseId = purchaseRepository.save(purchaseApiRequest.toEntityTo(productRepository.getById(purchaseApiRequest.getProductId()), customerRepository.getById(purchaseApiRequest.getCustomerId()), salesRepository.getById(purchaseApiRequest.getSalasId()), addressRepository.getById(purchaseApiRequest.getAddressId()),cardInfoRepository.getById(purchaseApiRequest.getCardInfo()))).getId();
-//            salesRepository.findByProductIdAndId(newpurchase.getId(), SalesStatus1.진행중, SalesStatus2.발송요청, purchaseApiRequest.getSalasId());
 
             if(purchaseApiRequest.getStatus1().equals(PurchaseStatus1.진행중)){
                 Transaction transaction = Transaction.builder()

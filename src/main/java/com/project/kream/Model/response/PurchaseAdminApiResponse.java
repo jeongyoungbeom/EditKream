@@ -1,5 +1,6 @@
 package com.project.kream.Model.response;
 
+import com.project.kream.Model.Entity.Purchase;
 import com.project.kream.Model.enumclass.PurchaseStatus3;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,4 +26,6 @@ public class PurchaseAdminApiResponse {
     private String cardCompany;
     private PurchaseStatus3 status3;
     private Long price;
+
+//
 }
