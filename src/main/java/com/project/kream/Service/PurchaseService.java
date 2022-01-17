@@ -34,7 +34,7 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
     public Long create(Header<PurchaseApiRequest> request) {
         System.out.println(request);
         PurchaseApiRequest purchaseApiRequest = request.getData();
-        Purchase newpurchase = null;
+//        Purchase newpurchase = null;
         Long purcharseId = 0L;
         if(purchaseApiRequest.getSalasId() == null) {
             purcharseId = purchaseRepository.save(purchaseApiRequest.toEntity(productRepository.getById(purchaseApiRequest.getProductId()), customerRepository.getById(purchaseApiRequest.getCustomerId()), addressRepository.getById(purchaseApiRequest.getAddressId()),cardInfoRepository.getById(purchaseApiRequest.getCardInfo()))).getId();
