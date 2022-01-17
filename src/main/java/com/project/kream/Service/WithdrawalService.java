@@ -22,7 +22,7 @@ public class WithdrawalService extends BaseService<WithdrawalApiRequest, Withdra
     private final WithdrawalRepository withdrawalRepository;
     private final WithdrawalSpecification withdrawalSpecification;
 
-    // 탈퇴 회원 저장
+    // 탈퇴 회원 저장합니다.
     public Header<Long> create(String email, String hp) {
         WithdrawalApiRequest withdrawalApiRequest = WithdrawalApiRequest.builder()
                 .email(email).hp(hp).build();
