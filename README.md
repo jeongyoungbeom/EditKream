@@ -9,3 +9,7 @@
   - StyleimgService
   - TransactionService
   - WithdrawalService
+  - DashBoardService
+  - FollowService
+  - HashTagService
+  - ProductQnaService
