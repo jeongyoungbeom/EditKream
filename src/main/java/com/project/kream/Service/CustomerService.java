@@ -14,6 +14,7 @@ import com.project.kream.Repository.SalesRepository;
 import com.project.kream.Repository.Specification.CustomerSpecification;
 import com.project.kream.Repository.WithdrawalRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
     private final StyleCustomerService styleCustomerService;
     private final WithdrawalRepository withdrawalRepository;
     private final PurchaseRepository purchaseRepository;
+    private final WithdrawalService withdrawalService;
 
     public Header<Long> create(Header<CustomerApiRequest> request) {
         CustomerApiRequest customerApiRequest = request.getData();
@@ -61,12 +63,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
     public Header delete(Long id){
         Optional<Customer> optionalCustomer = customerRepository.findById(id);
         Customer newCustomer = optionalCustomer.get();
-
-        Withdrawal withdrawal = Withdrawal.builder()
-                .email(newCustomer.getEmail())
-                .hp(newCustomer.getHp())
-                .build();
-        withdrawalRepository.save(withdrawal);
+       withdrawalService.create(newCustomer.getEmail(), newCustomer.getHp());
 
         return optionalCustomer.map(customer -> {
             baseRepository.delete(customer);

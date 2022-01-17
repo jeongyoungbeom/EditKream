@@ -5,8 +5,6 @@ import com.project.kream.Model.Header;
 import com.project.kream.Model.Pagination;
 import com.project.kream.Model.enumclass.PurchaseStatus1;
 import com.project.kream.Model.enumclass.PurchaseStatus2;
-import com.project.kream.Model.enumclass.SalesStatus1;
-import com.project.kream.Model.enumclass.SalesStatus2;
 import com.project.kream.Model.request.PurchaseApiRequest;
 import com.project.kream.Model.response.*;
 import com.project.kream.Repository.*;
@@ -68,21 +66,7 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         PurchaseApiRequest purchaseApiRequest = request.getData();
         Page<Purchase> purchaseList = purchaseRepository.SearchList(purchaseApiRequest.getId(), purchaseApiRequest.getStatus2(), purchaseApiRequest.getStatus3(), purchaseApiRequest.getProductId(),purchaseApiRequest.getRegdate1(), purchaseApiRequest.getRegdate2(), pageable);
         List<PurchaseListApiResponse> purchaseListApiResponseList = purchaseList.stream()
-                .map(purchase -> {
-                    Product product = purchase.getProduct();
-                    Address address = purchase.getAddress();
-
-                    PurchaseListApiResponse purchaseListApiResponse = PurchaseListApiResponse.builder()
-                            .productId(product.getId())
-                            .purchaseId(purchase.getId())
-                            .regdate(purchase.getRegdate())
-                            .status3(purchase.getStatus3())
-                            .status2(purchase.getStatus2())
-                            .name(address.getName())
-                            .build();
-
-                    return purchaseListApiResponse;
-                }).collect(Collectors.toList());
+                .map(PurchaseListApiResponse::new).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((purchaseList.getNumber()) / countPage) * countPage + 1;
@@ -91,27 +75,11 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
             endPage = purchaseList.getTotalPages();
         }
 
-        Pagination pagination = Pagination.builder()
-//                .totalPages(purchaseList.getTotalPages())
-//                .totalElements(purchaseList.getTotalElements())
-//                .currentPage(purchaseList.getNumber())
-//                .build();
-                .totalPages(purchaseList.getTotalPages())
-                .totalElements(purchaseList.getTotalElements())
-                .currentPage(purchaseList.getNumber())
-                .currentElements(purchaseList.getNumberOfElements())
-                .startPage(startPage)
-                .endPage(endPage)
-                .build();
-        return Header.OK(purchaseListApiResponseList,pagination);
+        return Header.OK(purchaseListApiResponseList, new Pagination(purchaseList, startPage, endPage));
     }
 
     public int delete(Long id){
         Optional<Purchase> purchase = purchaseRepository.findById(id);
-//        return purchase.map(buy ->{
-//            baseRepository.delete(buy);
-//            return Header.OK();
-//        }).orElseGet(() -> Header.ERROR("데이터없음"));
         if(purchase.isPresent()){
             purchaseRepository.delete(purchase.get());
             return 1;
@@ -119,22 +87,6 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         return 0;
     }
 
-//    public PurchaseApiResponse response(Purchase purchase){
-//        PurchaseApiResponse purchaseApiResponse = PurchaseApiResponse.builder()
-//                .id(purchase.getId())
-//                .productId(purchase.getProduct().getId())
-//                .customerId(purchase.getCustomer().getId())
-//                .price(purchase.getPrice())
-//                .period(purchase.getPeriod())
-//                .proimg(purchase.getProduct().getProImgList().get(0).getFilePath())
-//                .sizeType(purchase.getSizeType())
-//                .status1(purchase.getStatus1())
-//                .status2(purchase.getStatus2())
-//                .status3(purchase.getStatus3())
-//                .regdate(purchase.getRegdate())
-//                .build();
-//        return purchaseApiResponse;
-//    }
 
     // 관리자 입찰현황
     public Header<PurchaseAdminApiResponse> purchaseinfo(Long id){
@@ -178,7 +130,6 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
         }
 
         Long salesPrice = salesRepository.findBySizeTypeAndProductId(purchase.getSizeType(), purchase.getProduct().getId());
-
         Long purchasePrice = purchaseRepository.findBySizeTypeAndProductId(purchase.getSizeType(), purchase.getProduct().getId());
 
         PurchaseUserApiResponse purchaseUserApiResponse = PurchaseUserApiResponse.builder()
@@ -212,26 +163,16 @@ public class PurchaseService extends BaseService<PurchaseApiRequest, PurchaseApi
     public Header<List<PurchaseNopayApiResponse>> purchaseList(Pageable pageable){
         Page<Purchase> purchaseList = purchaseRepository.findAllByStatus2(PurchaseStatus2.미결제, pageable);
         List<PurchaseNopayApiResponse> purchaseNopayApiResponseList = purchaseList.stream()
-                .map(purchase -> {
-                    PurchaseNopayApiResponse purchaseNopayApiResponse = PurchaseNopayApiResponse.builder()
-                            .id(purchase.getId())
-                            .customerId(purchase.getCustomer().getId())
-                            .productId(purchase.getProduct().getId())
-                            .purchaseStatus2(purchase.getStatus2())
-                            .userid(purchase.getCustomer().getUserid())
-                            .name(purchase.getAddress().getName())
-                            .regdate(purchase.getRegdate())
-                            .build();
-                    return purchaseNopayApiResponse;
-                }).collect(Collectors.toList());
+                .map(PurchaseNopayApiResponse::new).collect(Collectors.toList());
 
-        Pagination pagination = Pagination.builder()
-                .totalPages(purchaseList.getTotalPages())
-                .totalElements(purchaseList.getTotalElements())
-                .currentPage(purchaseList.getNumber())
-                .build();
+        int countPage = 5;
+        int startPage = ((purchaseList.getNumber()) / countPage) * countPage + 1;
+        int endPage = startPage + countPage - 1;
+        if(endPage > purchaseList.getTotalPages()) {
+            endPage = purchaseList.getTotalPages();
+        }
 
-        return Header.OK(purchaseNopayApiResponseList, pagination);
+        return Header.OK(purchaseNopayApiResponseList, new Pagination(purchaseList, startPage, endPage));
     }
 
 
