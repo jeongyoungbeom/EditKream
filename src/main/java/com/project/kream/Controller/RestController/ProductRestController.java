@@ -22,10 +22,10 @@ public class ProductRestController extends CrudController<ProductApiRequest, Pro
     private final ProductService productService;
 
     //상품 등록
-//    @PostMapping("/api/pro_register")
-//    public Header<ProductApiResponse> create(@RequestPart(value = "data") ProductApiRequest request, MultipartHttpServletRequest mutilRequest) throws Exception{
-//        return productService.create(request, mutilRequest);
-//    }
+    @PostMapping("/api/pro_register")
+    public Header<Long> create(@RequestPart(value = "data") ProductApiRequest request, MultipartHttpServletRequest mutilRequest) throws Exception{
+        return productService.create(request, mutilRequest);
+    }
 
     //상품 업데이트
     @PutMapping("/api/pro_update")
@@ -87,15 +87,15 @@ public class ProductRestController extends CrudController<ProductApiRequest, Pro
     }
 
     // buy빠이너루
-    @GetMapping("/api/pro_buyfinal/{productId}/{customerId}/{size}/{price}/{date}/{checkId}")
-    public Header<ProductBuyFinalApiResponse> buyFinal(@PathVariable Long productId, @PathVariable Long customerId, @PathVariable String size, @PathVariable Long price, @PathVariable Long date, @PathVariable Long checkId){
-        return productService.buyFinal(productId, customerId, size, price, date, checkId);
+    @GetMapping("/api/pro_buyfinal/{productId}/{customerId}/{size}/{price}/{date}")
+    public Header<ProductBuyFinalApiResponse> buyFinal(@PathVariable Long productId, @PathVariable Long customerId, @PathVariable String size, @PathVariable Long price, @PathVariable Long date){
+        return productService.buyFinal(productId, customerId, size, price, date);
     }
 
     // sell빠이너루
-    @GetMapping("/api/pro_sellfinal/{productId}/{customerId}/{size}/{price}/{date}/{checkId}")
-    public Header<ProductSellFinalResponse> sellFinal(@PathVariable Long productId, @PathVariable Long customerId, @PathVariable String size, @PathVariable Long price, @PathVariable Long date, @PathVariable Long checkId){
-        return productService.sellFinal(productId, customerId, size, price, date, checkId);
+    @GetMapping("/api/pro_sellfinal/{productId}/{customerId}/{size}/{price}")
+    public Header<ProductSellFinalResponse> sellFinal(@PathVariable Long productId, @PathVariable Long customerId, @PathVariable String size, @PathVariable Long price){
+        return productService.sellFinal(productId, customerId, size, price);
     }
 
     // buyFinish
