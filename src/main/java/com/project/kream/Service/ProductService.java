@@ -45,7 +45,7 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
 
 
 
-    public Header<ProductApiResponse> create(ProductApiRequest request, MultipartHttpServletRequest mutilRequest) {
+    public Header<Long> create(ProductApiRequest request, MultipartHttpServletRequest mutilRequest) {
         Product newproEntity = baseRepository.save(request.toEntity());
 
         List<MultipartFile> fileList = mutilRequest.getFiles("files");
@@ -66,7 +66,7 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
                 }
             }
         }
-        return Header.OK(response(newproEntity));
+        return Header.OK(newproEntity.getId());
     }
 
     @Transactional
@@ -199,168 +199,52 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
 
     public Header<ProductBuyCheckApiResponse> buyCheck(Long id, String size){
         Product product = baseRepository.getById(id);
-
         List<ProductBuySizeApiResponse> productBuySizeApiResponseList = product.getProSizeList().stream()
-                .map(prosize -> {
-                    ProductBuySizeApiResponse productBuySizeApiResponse = ProductBuySizeApiResponse.builder()
-                            .size(prosize.getSizeType())
-                            .cnt(salesRepository.findBySizeTypeAndProductId(prosize.getSizeType(), id) )
-                            .build();
-                    return productBuySizeApiResponse;
-                }).collect(Collectors.toList());
-
-        ProductBuyCheckApiResponse productBuyCheckApiResponse = ProductBuyCheckApiResponse.builder()
-                .id(product.getId())
-                .modelNumber(product.getModelNumber())
-                .name(product.getName())
-                .korName(product.getKorName())
-                .size(size)
-                .origFileName(product.getProImgList().get(0).getOrigFileName())
-                .productBuySizeApiResponseList(productBuySizeApiResponseList)
-                .build();
-        return Header.OK(productBuyCheckApiResponse);
+                .map(prosize -> new ProductBuySizeApiResponse(prosize.getSizeType(), salesRepository.findBySizeTypeAndProductId(prosize.getSizeType(), id))).collect(Collectors.toList());
+        return Header.OK(new ProductBuyCheckApiResponse(product, size, productBuySizeApiResponseList));
     }
 
     public Header<ProductSellCheckApiResponse> sellCheck(Long id, String size){
         Product product = baseRepository.getById(id);
-
         List<ProductSellSizeApiResponse> productSellSizeApiResponseList = product.getProSizeList().stream()
-                .map(prosize -> {
-                    ProductSellSizeApiResponse productSellSizeApiResponse = ProductSellSizeApiResponse.builder()
-                            .size(prosize.getSizeType())
-                            .cnt(purchaseRepository.findBySizeTypeAndProductId(prosize.getSizeType(), id) )
-                            .build();
-                    return productSellSizeApiResponse;
-                }).collect(Collectors.toList());
-
-        ProductSellCheckApiResponse productSellCheckApiResponse = ProductSellCheckApiResponse.builder()
-                .id(product.getId())
-                .modelNumber(product.getModelNumber())
-                .name(product.getName())
-                .korName(product.getKorName())
-                .size(size)
-                .origFileName(product.getProImgList().get(0).getOrigFileName())
-                .productSellSizeApiResponseList(productSellSizeApiResponseList)
-                .build();
-        return Header.OK(productSellCheckApiResponse);
+                .map(prosize -> new ProductSellSizeApiResponse(prosize.getSizeType(), purchaseRepository.findBySizeTypeAndProductId(prosize.getSizeType(), id))).collect(Collectors.toList());
+        return Header.OK(new ProductSellCheckApiResponse(product, size, productSellSizeApiResponseList));
     }
 
     public Header<ProductBuyInfoApiResponse> buyInfo(Long id, String size){
         Product product = baseRepository.getById(id);
-
-        ProductBuyInfoApiResponse productBuyInfoApiResponse = ProductBuyInfoApiResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .korName(product.getKorName())
-                .modelNumber(product.getModelNumber())
-                .origFileName(product.getProImgList().get(0).getOrigFileName())
-                .salesPrice(salesRepository.findBySizeTypeAndProductId(size, id))
-                .purchasePrice(purchaseRepository.findBySizeTypeAndProductId(size, id))
-                .salesId(salesRepository.findByProductIdAndSizeType(id, size))
-                .size(size)
-                .build();
-        return Header.OK(productBuyInfoApiResponse);
+        return Header.OK(new ProductBuyInfoApiResponse(product, size, salesRepository.findBySizeTypeAndProductId(size, id), purchaseRepository.findBySizeTypeAndProductId(size, id), salesRepository.findByProductIdAndSizeType(id, size)));
     }
 
     public Header<ProductSellInfoApiResponse> sellInfo(Long id, String size){
         Product product = baseRepository.getById(id);
-
-        ProductSellInfoApiResponse productSellInfoApiResponse = ProductSellInfoApiResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .korName(product.getKorName())
-                .modelNumber(product.getModelNumber())
-                .origFileName(product.getProImgList().get(0).getOrigFileName())
-                .salesPrice(salesRepository.findBySizeTypeAndProductId(size, id))
-                .purchasePrice(purchaseRepository.findBySizeTypeAndProductId(size, id))
-                .purchaseId(purchaseRepository.findByProductIdAndSizeType(id, size))
-                .size(size)
-                .build();
-        return Header.OK(productSellInfoApiResponse);
+        return Header.OK(new ProductSellInfoApiResponse(product, size, salesRepository.findBySizeTypeAndProductId(size, id), purchaseRepository.findBySizeTypeAndProductId(size, id), purchaseRepository.findByProductIdAndSizeType(id, size)));
     }
 
-    public Header<ProductBuyFinalApiResponse> buyFinal(Long productId, Long customerId, String size, Long price, Long date, Long checkId){
+    public Header<ProductBuyFinalApiResponse> buyFinal(Long productId, Long customerId, String size, Long price, Long date){
         Product product = baseRepository.getById(productId);
 
         List<Address> addressList = addressRepository.findAllByCustomerId(customerId);
         List<ProductAddressApiResponse> productAddressApiResponseList = addressList.stream()
-                .map(address -> {
-                    ProductAddressApiResponse productAddressApiResponse = ProductAddressApiResponse.builder()
-                            .name(address.getName())
-                            .hp(address.getHp())
-                            .zipcode(address.getZipcode())
-                            .address1(address.getDetail1())
-                            .address2(address.getDetail2())
-                            .addressFlag(address.getFlag())
-                            .addressId(address.getId())
-                            .build();
-                    return productAddressApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductAddressApiResponse::new).collect(Collectors.toList());
 
         List<CardInfo> cardInfoList = cardInfoRepository.findAllByCustomerId(customerId);
-
         List<ProductCardInfoApiResponse> productCardInfoApiResponses = cardInfoList.stream()
-                .map(cardInfo -> {
-                    ProductCardInfoApiResponse productCardInfoApiResponse = ProductCardInfoApiResponse.builder()
-                            .cardCompany(cardInfo.getCardCompany())
-                            .cardNumber(cardInfo.getCardNumber())
-                            .cardFlag(cardInfo.getCardFlag())
-                            .id(cardInfo.getId())
-                            .build();
-                    return productCardInfoApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductCardInfoApiResponse::new).collect(Collectors.toList());
 
-        ProductBuyFinalApiResponse productBuyFinalApiResponse = ProductBuyFinalApiResponse.builder()
-                .id(productId)
-                .name(product.getName())
-                .modelNumber(product.getModelNumber())
-                .korName(product.getKorName())
-                .originFileName(product.getProImgList().get(0).getOrigFileName())
-                .size(size)
-                .price(price)
-                .date(date)
-                .productAddressApiResponseList(productAddressApiResponseList)
-                .productCardInfoApiResponses(productCardInfoApiResponses)
-                .build();
-
-        return Header.OK(productBuyFinalApiResponse);
+        return Header.OK(new ProductBuyFinalApiResponse(product, productId, size, price, productAddressApiResponseList, productCardInfoApiResponses, date));
     }
 
-    public Header<ProductSellFinalResponse> sellFinal(Long productId, Long customerId, String size, Long price, Long date, Long checkId){
+    public Header<ProductSellFinalResponse> sellFinal(Long productId, Long customerId, String size, Long price){
         Product product = baseRepository.getById(productId);
         Optional<Account> account = accountRepository.findByCustomerId(customerId);
         Account newAccount = account.orElseGet(Account::new);
 
         List<Address> addressList = addressRepository.findAllByCustomerId(customerId);
         List<ProductAddressApiResponse> productAddressApiResponseList = addressList.stream()
-                .map(address -> {
-                    ProductAddressApiResponse productAddressApiResponse = ProductAddressApiResponse.builder()
-                            .addressId(address.getId())
-                            .name(address.getName())
-                            .hp(address.getHp())
-                            .zipcode(address.getZipcode())
-                            .address1(address.getDetail1())
-                            .address2(address.getDetail2())
-                            .addressFlag(address.getFlag())
-                            .build();
-                    return productAddressApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductAddressApiResponse::new).collect(Collectors.toList());
 
-        ProductSellFinalResponse productSellFinalResponse = ProductSellFinalResponse.builder()
-                .id(productId)
-                .name(product.getName())
-                .korName(product.getKorName())
-                .modelNumber(product.getModelNumber())
-                .originFileName(product.getProImgList().get(0).getOrigFileName())
-                .size(size)
-                .price(price)
-                .accountName(newAccount.getName())
-                .accountId(newAccount.getId())
-                .bank(newAccount.getBank())
-                .accountNumber(newAccount.getAccountNumber())
-                .productAddressApiResponseList(productAddressApiResponseList)
-                .build();
-        return Header.OK(productSellFinalResponse);
+        return Header.OK(new ProductSellFinalResponse(product, newAccount, size, price, productAddressApiResponseList));
     }
 
     public Header<ProductSellFinishApiResponse> sellFinish(Long productId){
@@ -381,26 +265,6 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
         return Header.OK(productBuyFinishApiResponse);
     }
 
-    public ProductApiResponse response(Product product){
-        ProductApiResponse productApiResponse = ProductApiResponse.builder()
-                .id(product.getId())
-                .brand(product.getBrand())
-                .korName(product.getKorName())
-                .collection(product.getCollection())
-                .category(product.getCategory())
-                .subCategory(product.getSubCategory())
-                .name(product.getName())
-                .gender(product.getGender())
-                .release(product.getRelease())
-                .releasePrice(product.getReleasePrice())
-                .modelNumber(product.getModelNumber())
-                .color((product.getColor()))
-                .postStatus(product.getPostStatus())
-                .regdate((product.getRegdate()))
-                .build();
-        return productApiResponse;
-    }
-
     public Header delete(Long id){
         Optional<Product> productEntity = productRepository.findById(id);
         return productEntity.map(pro ->{
@@ -413,25 +277,7 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
         Page<Product> productList = productSpecification.searchProductList(request, pageable);
 
         List<ProductSearchApiResponse> productSearchApiResponseList = productList.stream()
-                .map(product -> {
-                    ProductSearchApiResponse productSearchApiResponse = ProductSearchApiResponse.builder()
-                            .id(product.getId())
-                            .brand(product.getBrand())
-                            .korName(product.getKorName())
-                            .collection(product.getCollection())
-                            .category(product.getCategory())
-                            .name(product.getName())
-                            .gender(product.getGender())
-                            .release(product.getRelease())
-                            .subCategory(product.getSubCategory())
-                            .releasePrice(product.getReleasePrice())
-                            .modelNumber(product.getModelNumber())
-                            .color((product.getColor()))
-                            .postStatus(product.getPostStatus())
-                            .regdate(product.getRegdate())
-                            .build();
-                    return productSearchApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductSearchApiResponse::new).collect(Collectors.toList());
 
         int countPage = 5;
         int startPage = ((productList.getNumber()) / countPage) * countPage + 1;
@@ -439,21 +285,12 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
         if(endPage > productList.getTotalPages()) {
             endPage = productList.getTotalPages();
         }
-
-        Pagination pagination = Pagination.builder()
-                .totalPages(productList.getTotalPages())
-                .totalElements(productList.getTotalElements())
-                .currentPage(productList.getNumber())
-                .currentElements(productList.getNumberOfElements())
-                .startPage(startPage)
-                .endPage(endPage)
-                .build();
-
-        return Header.OK(productSearchApiResponseList, pagination);
+        return Header.OK(productSearchApiResponseList, new Pagination(productList, startPage, endPage));
     }
 
 
     // 사용자 검색 큰 리스트
+    // 수정필요
     public Header<List<ProductUserBigListApiResponse>> userSearchList(String keywords, Pageable pageable){
         Page<Product> productList = productRepository.findAllByBrandOrCollectionOrCategoryOrNameOrKorNameOrModelNumber(PostStatus.게시중,keywords, pageable);
         List<ProductUserBigListApiResponse> productUserBigListApiResponses = productList.stream()
@@ -466,24 +303,9 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
         Page<Product> productList = productRepository.findAllByBrandOrCollectionOrCategoryOrNameOrKorNameOrModelNumber(PostStatus.게시중, keywords, pageable);
         Long cnt = productRepository.countAllByByBrandOrCollectionOrCategoryOrNameOrKorNameOrModelNumber(PostStatus.게시중, keywords);
         List<ProductSearchListApiResponse> productSearchListApiResponseList = productList.stream()
-                .map(product -> {
-                    ProductSearchListApiResponse productSearchListApiResponse = ProductSearchListApiResponse.builder()
-                            .productId(product.getId())
-                            .name(product.getName())
-                            .korName(product.getKorName())
-                            .origFileName(product.getProImgList().get(0).getOrigFileName())
-                            .build();
-                    return productSearchListApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductSearchListApiResponse::new).collect(Collectors.toList());
 
-        Pagination pagination = Pagination.builder()
-                .totalPages(productList.getTotalPages())
-                .totalElements(productList.getTotalElements())
-                .currentPage(productList.getNumber())
-                .currentElements(productList.getNumberOfElements())
-                .build();
-
-        return Header.OK(productSearchListApiResponseList, pagination, cnt);
+        return Header.OK(productSearchListApiResponseList, new Pagination(productList), cnt);
     }
 
     // 스타일 업로드 검색 리스트
@@ -491,66 +313,30 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
         Page<Product> productList = productRepository.findAllByBrandOrCollectionOrCategoryOrNameOrKorNameOrModelNumber(PostStatus.게시중, keywords, pageable);
         Long cnt = productRepository.countAllByByBrandOrCollectionOrCategoryOrNameOrKorNameOrModelNumber(PostStatus.게시중, keywords);
         List<StyleSearchListApiResponse> styleSearchListApiResponseList = productList.stream()
-                .map(product -> {
-                    StyleSearchListApiResponse styleSearchListApiResponse = StyleSearchListApiResponse.builder()
-                            .productId(product.getId())
-                            .name(product.getName())
-                            .korName(product.getKorName())
-                            .origFileName(product.getProImgList().get(0).getOrigFileName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return styleSearchListApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new StyleSearchListApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
-        Pagination pagination = Pagination.builder()
-                .totalPages(productList.getTotalPages())
-                .totalElements(productList.getTotalElements())
-                .currentPage(productList.getNumber())
-                .currentElements(productList.getNumberOfElements())
-                .build();
-
-        return Header.OK(styleSearchListApiResponseList, pagination, cnt);
+        return Header.OK(styleSearchListApiResponseList, new Pagination(productList), cnt);
     }
 
     public Header<ProductPostCntApiResponse> postCount(){
-        ProductPostCntApiResponse productPostCntApiResponse = ProductPostCntApiResponse.builder()
-                .allCnt(productRepository.ProductCnt())
-                .waitCnt(productRepository.countByPostStatus(PostStatus.게시대기))
-                .ingCnt(productRepository.countByPostStatus(PostStatus.게시중))
-                .stopCnt(productRepository.countByPostStatus(PostStatus.게시중지))
-                .finishCnt(productRepository.countByPostStatus(PostStatus.게시종료))
-                .build();
-
-        return Header.OK(productPostCntApiResponse);
+        return Header.OK(new ProductPostCntApiResponse(
+                productRepository.ProductCnt(),
+                productRepository.countByPostStatus(PostStatus.게시대기),
+                productRepository.countByPostStatus(PostStatus.게시중),
+                productRepository.countByPostStatus(PostStatus.게시중지),
+                productRepository.countByPostStatus(PostStatus.게시종료)
+        ));
     }
 
     public Header<MainApiResponse> main(){
 
         List<Product> droppedList =  productRepository.findTop12ByPostStatusOrderByRegdateDesc(PostStatus.게시중);
         List<ProductDroppedApiResponse> productDroppedApiResponseList = droppedList.stream()
-                .map(product -> {
-                    ProductDroppedApiResponse productDroppedApiResponse = ProductDroppedApiResponse.builder()
-                            .id(product.getId())
-                            .originFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productDroppedApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductDroppedApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
         List<Product> UpcomingList =  productRepository.findTop12ByPostStatusOrderByReleaseAsc(PostStatus.게시대기);
         List<ProductUpcomingApiResponse> productUpcomingApiResponseList = UpcomingList.stream()
-                .map(product -> {
-                    ProductUpcomingApiResponse productUpcomingApiResponse = ProductUpcomingApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .regdate(product.getRelease())
-                            .build();
-                    return productUpcomingApiResponse;
-                }).collect(Collectors.toList());
+                .map(ProductUpcomingApiResponse::new).collect(Collectors.toList());
 
         List<ProductPopularApiResponse> productPopularApiResponseList = productRepository.Popular();
 
@@ -577,117 +363,50 @@ public class ProductService extends BaseService<ProductApiRequest, ProductApiRes
 
         List<Product> brandList1 = productRepository.findTop12ByBrandAndPostStatus("Adidas", PostStatus.게시중);
         List<ProductBrandApiResponse> productBrandApiResponseList1 = brandList1.stream()
-                .map(product -> {
-                    ProductBrandApiResponse productBrandApiResponse = ProductBrandApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productBrandApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductBrandApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
         List<Product> brandList2 = productRepository.findTop12ByBrandAndPostStatus("Balenciaga", PostStatus.게시중);
         List<ProductBrandApiResponse> productBrandApiResponseList2 = brandList2.stream()
-                .map(product -> {
-                    ProductBrandApiResponse productBrandApiResponse = ProductBrandApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productBrandApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductBrandApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
         List<Product> brandList3 = productRepository.findTop12ByBrandAndPostStatus("Stone Island", PostStatus.게시중);
         List<ProductBrandApiResponse> productBrandApiResponseList3 = brandList3.stream()
-                .map(product -> {
-                    ProductBrandApiResponse productBrandApiResponse = ProductBrandApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productBrandApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductBrandApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
 
         List<Style> stylePickList = styleRepository.findTop8ByOrderByHitDesc();
         List<StylePickApiResponse> stylePickApiResponseList = stylePickList.stream()
-                .map(style -> {
-                    Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
-                    StylePickApiResponse stylePickApiResponse = StylePickApiResponse.builder()
-                            .id(style.getId())
-                            .profileName(styleCustomer.getProfileName())
-                            .customerOriginFileName(customer.getImage())
-                            .styleOriginFileName(style.getStyleImgList().get(0).getOrigFileName())
-                            .build();
-                    return stylePickApiResponse;
-                }).collect(Collectors.toList());
+                .map(style -> new StylePickApiResponse(style, style.getCustomer().getStyleCustomerList().get(0), style.getCustomer())).collect(Collectors.toList());
 
         List<Style> hashTagList = styleRepository.HashTagList("shoeKREAM");
         List<StyleHashTagListApiResponse> styleHashTagListApiResponseList = hashTagList.stream()
-                .map(style -> {
-                    Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
-                    StyleHashTagListApiResponse styleHashTagListApiResponse = StyleHashTagListApiResponse.builder()
-                            .id(style.getId())
-                            .profileName(styleCustomer.getProfileName())
-                            .customerOriginFileName(customer.getImage())
-                            .styleOriginFileName(style.getStyleImgList().get(0).getOrigFileName())
-                            .build();
-                    return styleHashTagListApiResponse;
-                }).collect(Collectors.toList());
+                .map(style -> new StyleHashTagListApiResponse(style, style.getCustomer().getStyleCustomerList().get(0), style.getCustomer())).collect(Collectors.toList());
 
         List<Product> newLowers = productRepository.NewLowers(PurchaseStatus2.입찰중);
         List<ProductNewLowersApiResponse> productNewLowersApiResponseList = newLowers.stream()
-                .map(product -> {
-                    ProductNewLowersApiResponse productNewLowersApiResponse = ProductNewLowersApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productNewLowersApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductNewLowersApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
         List<Product> newHighest = productRepository.NewHighest(SalesStatus2.입찰중);
         List<ProductNewHighestApiResponse> productNewHighestApiResponseList = newHighest.stream()
-                .map(product -> {
-                    ProductNewHighestApiResponse productNewHighestApiResponse = ProductNewHighestApiResponse.builder()
-                            .id(product.getId())
-                            .oringinFileName(product.getProImgList().get(0).getOrigFileName())
-                            .brand(product.getBrand())
-                            .name(product.getName())
-                            .price(salesRepository.findByProductId(product.getId()))
-                            .build();
-                    return productNewHighestApiResponse;
-                }).collect(Collectors.toList());
+                .map(product -> new ProductNewHighestApiResponse(product, salesRepository.findByProductId(product.getId()))).collect(Collectors.toList());
 
-        MainApiResponse mainApiResponse = MainApiResponse.builder()
-                .productDroppedApiResponseList(productDroppedApiResponseList)
-                .productUpcomingApiResponseList(productUpcomingApiResponseList)
-                .productPopularApiResponseList(productPopularApiResponseList)
-                .productCollectionApiResponseList1(productCollectionApiResponseList1)
-                .productCollectionApiResponseList2(productCollectionApiResponseList2)
-                .productCollectionApiResponseList3(productCollectionApiResponseList3)
-                .productCollectionApiResponseList4(productCollectionApiResponseList4)
-                .productCollectionApiResponseList5(productCollectionApiResponseList5)
-                .productBrandApiResponseList1(productBrandApiResponseList1)
-                .productBrandApiResponseList2(productBrandApiResponseList2)
-                .productBrandApiResponseList3(productBrandApiResponseList3)
-                .stylePickApiResponseList(stylePickApiResponseList)
-                .styleHashTagListApiResponseList(styleHashTagListApiResponseList)
-                .productNewLowersApiResponseList(productNewLowersApiResponseList)
-                .productNewHighestApiResponseList(productNewHighestApiResponseList)
-                .build();
-
-        return Header.OK(mainApiResponse);
+        return Header.OK(new MainApiResponse(
+                productDroppedApiResponseList,
+                productUpcomingApiResponseList,
+                productPopularApiResponseList,
+                productCollectionApiResponseList1,
+                productCollectionApiResponseList2,
+                productCollectionApiResponseList3,
+                productCollectionApiResponseList4,
+                productCollectionApiResponseList5,
+                productBrandApiResponseList1,
+                productBrandApiResponseList2,
+                productBrandApiResponseList3,
+                stylePickApiResponseList,
+                styleHashTagListApiResponseList,
+                productNewLowersApiResponseList,
+                productNewHighestApiResponseList
+        ));
     }
 
 

@@ -1,19 +1,14 @@
 package com.project.kream.Model.response;
 
+import com.project.kream.Model.Entity.Product;
 import com.project.kream.Model.enumclass.Category;
 import com.project.kream.Model.enumclass.PostStatus;
 import com.project.kream.Model.enumclass.SubCategory;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@Builder
-@AllArgsConstructor
+@Getter
 public class ProductSearchApiResponse {
     private Long id;
     private String brand;
@@ -29,4 +24,21 @@ public class ProductSearchApiResponse {
     private String color;
     private PostStatus postStatus;
     private LocalDateTime regdate;
+
+    public ProductSearchApiResponse(Product product) {
+        this.id = product.getId();
+        this.brand = product.getBrand();
+        this.collection = product.getCollection();
+        this.category = product.getCategory();
+        this.subCategory = product.getSubCategory();
+        this.korName = product.getKorName();
+        this.name = product.getName();
+        this.gender = product.getGender();
+        this.release = product.getRelease();
+        this.releasePrice = product.getReleasePrice();
+        this.modelNumber = product.getModelNumber();
+        this.color = product.getColor();
+        this.postStatus = product.getPostStatus();
+        this.regdate = product.getRegdate();
+    }
 }
