@@ -51,6 +51,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
                 .build();
         Style newStyle = baseRepository.save(style);
 
+
         List<MultipartFile> fileList = multipart.getFiles("files");
         String path = "/Users/soyounjeong/EditKream/src/main/resources/static/lib/styleImg";
 
@@ -438,14 +439,14 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
         return Header.OK(styleDetailListApiResponses);
     }
 
-    // 여기부터 해야함
-    public Header delete(Long id){
-        Optional<Style> optionalStyle = baseRepository.findById(id);
 
-        return optionalStyle.map(style -> {
-            baseRepository.delete(style);
-            return Header.OK();
-        }).orElseGet(() -> Header.ERROR("데이터 없음"));
+    public int delete(Long id){
+        Optional<Style> optionalStyle = baseRepository.findById(id);
+        if(optionalStyle.isPresent()){
+            styleRepository.delete(optionalStyle.get());
+            return  1;
+        }
+        return 0;
     }
 
     public StyleApiResponse response(Style style){
@@ -460,13 +461,14 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     public Header<List<StyleApiResponse>> search(Pageable pageable){
         Page<Style> styles = baseRepository.findAll(pageable);
         List<StyleApiResponse> styleApiResponseList = styles.stream()
-                .map(pro -> response(pro))
+                .map(StyleApiResponse::new)
                 .collect(Collectors.toList());
         Pagination pagination = Pagination.builder()
                 .totalPages(styles.getTotalPages())
                 .totalElements(styles.getTotalElements())
                 .currentPage(styles.getNumber())
                 .build();
+
         return Header.OK(styleApiResponseList, pagination);
     }
 
@@ -480,31 +482,12 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
 
         List<ProductTag> productTagList = style.getProductTagList();
         List<StyleProductTagIdApiResponse> styleProductTagIdApiResponseList = productTagList.stream()
-                .map(productTag -> {
-                    StyleProductTagIdApiResponse styleProductTagIdApiResponse = StyleProductTagIdApiResponse.builder()
-                            .productId(productTag.getProduct().getId())
-                            .originFileName(productTag.getProduct().getProImgList().get(0).getOrigFileName())
-                            .name(productTag.getProduct().getName())
-                            .build();
-                    return styleProductTagIdApiResponse;
-                }).collect(Collectors.toList());
+                .map(StyleProductTagIdApiResponse::new).collect(Collectors.toList());
 
         List<StyleHashTag> hashTagList = style.getStyleHashTagList();
         List<StyleHashTagNameApiResponse> styleHashTagNameApiResponseList = hashTagList.stream()
-                .map(styleHashTag -> {
-                    StyleHashTagNameApiResponse styleHashTagNameApiResponse = StyleHashTagNameApiResponse.builder()
-                            .tagName(styleHashTag.getHashTag().getTagName())
-                            .build();
-                    return styleHashTagNameApiResponse;
-                }).collect(Collectors.toList());
+                .map(StyleHashTagNameApiResponse::new).collect(Collectors.toList());
 
-        StyleDetailApiResponse styleDetailApiResponse = StyleDetailApiResponse.builder()
-                .id(style.getId())
-                .content(style.getContent())
-                .styleImgListApiResponseList(styleImgListApiResponseList)
-                .styleProductTagIdApiResponseList(styleProductTagIdApiResponseList)
-                .styleHashTagNameApiResponseList(styleHashTagNameApiResponseList)
-                .build();
-        return Header.OK(styleDetailApiResponse);
+        return Header.OK(new StyleDetailApiResponse(style, styleImgListApiResponseList, styleProductTagIdApiResponseList, styleHashTagNameApiResponseList));
     }
 }

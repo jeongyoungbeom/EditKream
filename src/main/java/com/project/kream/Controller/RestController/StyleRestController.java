@@ -108,7 +108,7 @@ public class StyleRestController extends CrudController<StyleApiRequest, StyleAp
 
     //스타일 삭제
     @DeleteMapping("/api/style_delete/{id}")
-    public Header delete(@PathVariable Long id){
+    public int delete(@PathVariable Long id){
         return styleService.delete(id);
     }
 
