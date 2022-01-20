@@ -1,7 +1,6 @@
 package com.project.kream.Model.request;
 
 import com.project.kream.Model.Entity.Customer;
-import com.project.kream.Model.Entity.Product;
 import com.project.kream.Model.Entity.Style;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,14 +17,12 @@ public class StyleApiRequest {
     private String content;
     private String[] tagName;
     private Long[] ProductId;
-    private Long hit;
 
     public Style toEntity(Customer customer){
         return Style.builder()
-                .id(id)
                 .customer(customer)
                 .content(content)
-                .hit(hit)
+                .hit(0L)
                 .build();
     }
 }
