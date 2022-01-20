@@ -332,21 +332,6 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
                     List<StyleReplyDetailApiResponse> styleReplyDetailApiResponseList = styleReplyList.stream()
                             .map(styleReply -> new StyleReplyDetailApiResponse(styleReply, false)).collect(Collectors.toList());
 
-                    StyleDetailListApiResponse styleDetailListApiResponse = StyleDetailListApiResponse.builder()
-                            .styleId(style.getId())
-                            .customerId(customer.getId())
-                            .customerUserId(styleCustomer.getProfileName())
-                            .customerOriginFile(customer.getImage())
-                            .hit(style.getHit())
-                            .content(style.getContent())
-                            .styleImgListApiResponseList(styleImgListApiResponseList)
-                            .styleDetailProductTagApiResponseList(styleDetailProductTagApiResponseList)
-                            .styleDetailHashTagApiResponseList(styleDetailHashTagApiResponseList)
-                            .styleReplyDetailApiResponseList(styleReplyDetailApiResponseList)
-                            .hitBoolean(false)
-                            .followBoolean(false)
-                            .regdate(style.getRegdate())
-                            .build();
                     return new StyleDetailListApiResponse(style, styleImgListApiResponseList, styleDetailProductTagApiResponseList, styleDetailHashTagApiResponseList, styleReplyDetailApiResponseList, false, false);
 
                 }).collect(Collectors.toList());

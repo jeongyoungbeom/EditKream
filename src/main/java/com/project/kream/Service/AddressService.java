@@ -65,20 +65,4 @@ public class AddressService extends BaseService<AddressApiRequest, AddressApiRes
         }
         return 0;
     }
-
-
-    public AddressApiResponse response(Address address){
-        AddressApiResponse addressApiResponse = AddressApiResponse.builder()
-                .id(address.getId())
-                .name(address.getName())
-                .hp(address.getHp())
-                .zipcode(address.getZipcode())
-                .detail1(address.getDetail1())
-                .detail2(address.getDetail2())
-                .flag(address.getFlag())
-                .customerId(address.getCustomer().getId())
-                .regdate(address.getRegdate())
-                .build();
-        return addressApiResponse;
-    }
 }
