@@ -43,13 +43,9 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     private final ReplyLikeService replyLikeService;
     private final FollowService followService;
 
-    public Header<StyleApiResponse> create(StyleApiRequest request, MultipartHttpServletRequest multipart) {
-        Style style = Style.builder()
-                .customer(customerRepository.getById(request.getCustomerId()))
-                .content(request.getContent())
-                .hit(0L)
-                .build();
-        Style newStyle = baseRepository.save(style);
+    public Long create(Header<StyleApiRequest> request, MultipartHttpServletRequest multipart) {
+        StyleApiRequest styleApiRequest = request.getData();
+        Style newStyle = styleRepository.save(styleApiRequest.toEntity(customerRepository.getById(styleApiRequest.getCustomerId())));
 
         List<MultipartFile> fileList = multipart.getFiles("files");
         String path = "/Users/soyounjeong/EditKream/src/main/resources/static/lib/styleImg";
@@ -70,11 +66,11 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
             }
         }
 
-        for(Long id : request.getProductId()){
+        for(Long id : styleApiRequest.getProductId()){
             productTagService.create(id, newStyle.getId());
         }
 
-        for(String name : request.getTagName()){
+        for(String name : styleApiRequest.getTagName()){
             if(hashTagRepository.existsByTagName(name)){
                 HashTag HashTag = hashTagRepository.getByTagName(name);
                 styleHashTagService.create(newStyle.getId(), HashTag.getId());
@@ -83,40 +79,36 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
                 styleHashTagService.create(newStyle.getId(), hashTagId);
             }
         }
-        return Header.OK(response(newStyle));
+        return newStyle.getId();
     }
 
-    public Header<StyleApiResponse> update(StyleApiRequest request) {
-        Optional<Style> optionalStyle = styleRepository.findById(request.getId());
-        return optionalStyle.map(style -> {
-                    style.setContent(request.getContent());
 
-                    productTagRepository.deleteAllByStyleId(request.getId());
-                    styleHashTagRepository.deleteAllByStyleId(request.getId());
+    public Long update(Header<StyleApiRequest> request){
+        StyleApiRequest styleApiRequest = request.getData();
+        Style style = styleRepository.findById(styleApiRequest.getId()).orElseThrow(() -> new IllegalArgumentException("해당 유저 없음"));
 
-                    if(request.getProductId().length != 0) {
-                        for (Long id : request.getProductId()) {
-                            productTagService.create(id, style.getId());
-                        }
-                    }
+        if (styleApiRequest.getProductId().length != 0) {
+            for (Long id : styleApiRequest.getProductId()) {
+                productTagService.create(id, style.getId());
+            }
+        }
 
-                    if(request.getTagName().length != 0) {
-                        for (String Name : request.getTagName()) {
-                            if(hashTagRepository.existsByTagName(Name)){
-                                HashTag HashTag = hashTagRepository.getByTagName(Name);
-                                styleHashTagService.create(request.getId(), HashTag.getId());
-                            }else{
-                                Long hashTagId = hashTagService.create(Name);
-                                styleHashTagService.create(request.getId(), hashTagId);
-                            }
-                        }
-                    }
-                    return style;
-                }).map(style -> baseRepository.save(style))
-                .map(this::response)
-                .map(Header::OK)
-                .orElseGet(() -> Header.ERROR("데이터가 없습니다"));
+        if (styleApiRequest.getTagName().length != 0) {
+            for (String Name : styleApiRequest.getTagName()) {
+                if (hashTagRepository.existsByTagName(Name)) {
+                    HashTag HashTag = hashTagRepository.getByTagName(Name);
+                    styleHashTagService.create(styleApiRequest.getId(), HashTag.getId());
+                } else {
+                    Long hashTagId = hashTagService.create(Name);
+                    styleHashTagService.create(styleApiRequest.getId(), hashTagId);
+                }
+            }
+        }
+
+        style.update(styleApiRequest.getContent(), style.getHit(), style.getCustomer(), style.getStyleReplyList(), style.getProductTagList(), style.getStyleImgList(), style.getStyleLikeList(), style.getStyleHashTagList());
+        return  styleApiRequest.getId();
     }
+
 
     public Header<StyleApiResponse> upload(Long id, MultipartHttpServletRequest multiRequest){
         List<MultipartFile> fileList = multiRequest.getFiles("files");
@@ -448,19 +440,19 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
         }).orElseGet(() -> Header.ERROR("데이터 없음"));
     }
 
-    public StyleApiResponse response(Style style){
-        StyleApiResponse styleApiResponse = StyleApiResponse.builder()
-                .id(style.getId())
-                .content(style.getContent())
-                .customerId(style.getCustomer().getId())
-                .build();
-        return styleApiResponse;
-    }
+//    public StyleApiResponse response(Style style){
+//        StyleApiResponse styleApiResponse = StyleApiResponse.builder()
+//                .id(style.getId())
+//                .content(style.getContent())
+//                .customerId(style.getCustomer().getId())
+//                .build();
+//        return styleApiResponse;
+//    }
 
     public Header<List<StyleApiResponse>> search(Pageable pageable){
         Page<Style> styles = baseRepository.findAll(pageable);
         List<StyleApiResponse> styleApiResponseList = styles.stream()
-                .map(pro -> response(pro))
+                .map(StyleApiResponse::new)
                 .collect(Collectors.toList());
         Pagination pagination = Pagination.builder()
                 .totalPages(styles.getTotalPages())
@@ -480,31 +472,12 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
 
         List<ProductTag> productTagList = style.getProductTagList();
         List<StyleProductTagIdApiResponse> styleProductTagIdApiResponseList = productTagList.stream()
-                .map(productTag -> {
-                    StyleProductTagIdApiResponse styleProductTagIdApiResponse = StyleProductTagIdApiResponse.builder()
-                            .productId(productTag.getProduct().getId())
-                            .originFileName(productTag.getProduct().getProImgList().get(0).getOrigFileName())
-                            .name(productTag.getProduct().getName())
-                            .build();
-                    return styleProductTagIdApiResponse;
-                }).collect(Collectors.toList());
+                .map(StyleProductTagIdApiResponse::new).collect(Collectors.toList());
 
         List<StyleHashTag> hashTagList = style.getStyleHashTagList();
         List<StyleHashTagNameApiResponse> styleHashTagNameApiResponseList = hashTagList.stream()
-                .map(styleHashTag -> {
-                    StyleHashTagNameApiResponse styleHashTagNameApiResponse = StyleHashTagNameApiResponse.builder()
-                            .tagName(styleHashTag.getHashTag().getTagName())
-                            .build();
-                    return styleHashTagNameApiResponse;
-                }).collect(Collectors.toList());
+                .map(StyleHashTagNameApiResponse::new).collect(Collectors.toList());
 
-        StyleDetailApiResponse styleDetailApiResponse = StyleDetailApiResponse.builder()
-                .id(style.getId())
-                .content(style.getContent())
-                .styleImgListApiResponseList(styleImgListApiResponseList)
-                .styleProductTagIdApiResponseList(styleProductTagIdApiResponseList)
-                .styleHashTagNameApiResponseList(styleHashTagNameApiResponseList)
-                .build();
-        return Header.OK(styleDetailApiResponse);
+        return Header.OK(new StyleDetailApiResponse(style, styleImgListApiResponseList, styleProductTagIdApiResponseList, styleHashTagNameApiResponseList));
     }
 }
