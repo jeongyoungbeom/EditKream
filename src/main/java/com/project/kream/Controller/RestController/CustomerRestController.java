@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
-
+// @Controller + @ResponseBody이며, 메소드의 return(반환값)을 문자열(JSON) 형태로 반환합니다.
 @RestController
 @RequiredArgsConstructor
 public class CustomerRestController extends CrudController<CustomerApiRequest, CustomerApiResponse, Customer> {

@@ -1,9 +1,15 @@
 package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.HashTag;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class StyleDetailHashTagApiResponse {
     private String tagName;
 
