@@ -27,7 +27,7 @@ public class CartRestController extends CrudController<CartApiRequest, CartApiRe
     }
 
 
-    // 프로독투 관심상품 삭제
+    // 관심상품 삭제
     @DeleteMapping("/api/cart_delete/{productId}/{sizeType}")
     public Header<CartApiResponse> delete(@PathVariable Long productId, @PathVariable String sizeType){
         return cartService.delete(productId, sizeType);

@@ -22,15 +22,18 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class CustomerRestController extends CrudController<CustomerApiRequest, CustomerApiResponse, Customer> {
+    // 의존성 주입
     private final CustomerService customerService;
 
     // 회원등록
     @PostMapping("/api/customer_register")
+    // @RequestBody HTTP요청의 body 내용을 자바 객체로 매핑하는 역할을 합니다.
     public Header<Long> create(@RequestBody Header<CustomerApiRequest> request) {
         return customerService.create(request);
     }
     // 마이페이지
     @GetMapping("/api/customer_detail/{id}")
+    // @PathVariable URL 에서 ({})의 명시된 변수를 받아온다.
     public Header<CustomerApiResponse> read(@PathVariable Long id){
         return customerService.read(id);
     }
