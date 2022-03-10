@@ -30,7 +30,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Transactional
+// 이 방식을 선언적 트랜잭션이라 부르며, 적용된 범위에서는 트랜잭션 기능이 포함된 프록시 객체가 생성되어 자동으로 commit 혹은 rollback을 진행해준다.
+@Transactional(rollbackFor = Exception.class)
+// 서비스 레이어, 내부에서 자바 로직을 처리함
 @Service
 @RequiredArgsConstructor
 public class CustomerService extends BaseService<CustomerApiRequest, CustomerApiResponse, Customer> {
@@ -40,7 +42,6 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
     private final PasswordEncoder passwordEncoder;
     private final CustomerSpecification customerSpecification;
     private final StyleCustomerService styleCustomerService;
-    private final WithdrawalRepository withdrawalRepository;
     private final PurchaseRepository purchaseRepository;
     private final WithdrawalService withdrawalService;
 

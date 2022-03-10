@@ -20,6 +20,8 @@ import java.util.List;
 
 // @Controller + @ResponseBody이며, 메소드의 return(반환값)을 문자열(JSON) 형태로 반환합니다.
 @RestController
+// final 필드에 대해 생성자를 만들어주는 lombok의 annotation.
+// Spring Framework의 DI(의존성주입) 중 Constructor Injection(생성자 주입)을 임의의 코드 없이 자동으로 설정
 @RequiredArgsConstructor
 public class CustomerRestController extends CrudController<CustomerApiRequest, CustomerApiResponse, Customer> {
     // 의존성 주입
