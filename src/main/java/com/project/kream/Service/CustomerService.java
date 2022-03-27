@@ -29,13 +29,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 // 이 방식을 선언적 트랜잭션이라 부르며, 적용된 범위에서는 트랜잭션 기능이 포함된 프록시 객체가 생성되어 자동으로 commit 혹은 rollback을 진행해준다.
 @Transactional(rollbackFor = Exception.class)
 // 서비스 레이어, 내부에서 자바 로직을 처리함
 @Service
 @RequiredArgsConstructor
-public class CustomerService extends BaseService<CustomerApiRequest, CustomerApiResponse, Customer> {
+public class CustomerService {
     private final CustomerRepository customerRepository;
     private final SalesRepository salesRepository;
     private final MailService mailService;
@@ -48,7 +47,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
     // 회원가입
     public Header<Long> create(Header<CustomerApiRequest> request) {
         CustomerApiRequest customerApiRequest = request.getData();
-        Customer customer1 = baseRepository.save(customerApiRequest.toEntity(passwordEncoder.encode(customerApiRequest.getUserpw())));
+        Customer customer1 = customerRepository.save(customerApiRequest.toEntity(passwordEncoder.encode(customerApiRequest.getUserpw())));
 
         String email = customer1.getEmail();
 
@@ -69,7 +68,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
        withdrawalService.create(newCustomer.getEmail(), newCustomer.getHp());
 
         return optionalCustomer.map(customer -> {
-            baseRepository.delete(customer);
+            customerRepository.delete(customer);
             return 1;
         }).orElseThrow(() -> new IllegalArgumentException("데이터가 없습니다."));
     }
@@ -81,7 +80,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
 
     // 비밀번호 확인
     public Boolean pwCheck(Long id, String userpw){
-        Customer customer = baseRepository.getById(id);
+        Customer customer = customerRepository.getById(id);
         return passwordEncoder.matches(userpw, customer.getUserpw());
     }
 
@@ -134,7 +133,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
 
     // 마이페이지
     public Header<CustomerMypage1ApiResponse> mypage(Long id){
-        Customer customer = baseRepository.getById(id);
+        Customer customer = customerRepository.getById(id);
 
         List<Purchase> purchaseList = customer.getPurchaseList();
         List<CustomerMypagePurchaseApiResponse> customerMypagePurchaseApiResponseList = purchaseList.stream()
@@ -196,7 +195,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
 
     // 찜목록
     public Header<List<CustomerCartInfoApiResponse>> cartinfo(Long id){
-        Customer customer = baseRepository.getById(id);
+        Customer customer = customerRepository.getById(id);
 
         List<Cart> cartList = customer.getCartList();
         List<CustomerCartInfoApiResponse> customerCartInfoApiResponseList = cartList.stream()
@@ -211,7 +210,7 @@ public class CustomerService extends BaseService<CustomerApiRequest, CustomerApi
 
     // 관리자
     public Header<CustomerInfoApiResponse> customerInfo(Long id){
-        Customer customer = baseRepository.getById(id);
+        Customer customer = customerRepository.getById(id);
 
         List<Address> addressList = customer.getAddressList();
         List<CustomerAddressApiResponse> customerAddressApiResponses = addressList.stream()

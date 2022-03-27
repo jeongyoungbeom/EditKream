@@ -1,8 +1,6 @@
 package com.project.kream.Controller.RestController;
 
 
-import com.project.kream.Controller.CrudController;
-import com.project.kream.Model.Entity.Customer;
 import com.project.kream.Model.Header;
 import com.project.kream.Model.enumclass.CustomerType;
 import com.project.kream.Model.request.CustomerApiRequest;
@@ -12,10 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 // @Controller + @ResponseBody이며, 메소드의 return(반환값)을 문자열(JSON) 형태로 반환합니다.
@@ -23,7 +19,7 @@ import java.util.List;
 // final 필드에 대해 생성자를 만들어주는 lombok의 annotation.
 // Spring Framework의 DI(의존성주입) 중 Constructor Injection(생성자 주입)을 임의의 코드 없이 자동으로 설정
 @RequiredArgsConstructor
-public class CustomerRestController extends CrudController<CustomerApiRequest, CustomerApiResponse, Customer> {
+public class CustomerRestController {
     // 의존성 주입
     private final CustomerService customerService;
 

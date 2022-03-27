@@ -1,9 +1,6 @@
 package com.project.kream.Controller.RestController;
 
-import com.project.kream.Controller.CrudController;
-import com.project.kream.Model.Entity.HashTag;
 import com.project.kream.Model.Header;
-import com.project.kream.Model.request.HashTagApiRequest;
 import com.project.kream.Model.response.HashTagApiResponse;
 import com.project.kream.Service.HashTagService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class HashTagRestController extends CrudController<HashTagApiRequest, HashTagApiResponse, HashTag> {
+public class HashTagRestController {
     private final HashTagService hashTagService;
 
     //전체 해쉬태그 리스트

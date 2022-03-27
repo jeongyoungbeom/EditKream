@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AddressService extends BaseService<AddressApiRequest, AddressApiResponse, Address>{
+public class AddressService {
     private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
 
@@ -58,7 +58,7 @@ public class AddressService extends BaseService<AddressApiRequest, AddressApiRes
     }
 
     public int delete(Long id) {
-        Optional<Address> optionalAddress = baseRepository.findById(id);
+        Optional<Address> optionalAddress = addressRepository.findById(id);
         if(optionalAddress.isPresent()){
             addressRepository.delete(optionalAddress.get());
             return 1;

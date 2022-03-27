@@ -15,17 +15,14 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse, Style> {
+public class StyleService {
     private final StyleRepository styleRepository;
     private final StyleReplyRepository styleReplyRepository;
     private final ProductTagService productTagService;
@@ -34,8 +31,6 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     private final StyleimgRepository styleImgRepository;
     private final CustomerRepository customerRepository;
     private final SalesRepository salesRepository;
-    private final ProductTagRepository productTagRepository;
-    private final StyleHashTagRepository styleHashTagRepository;
     private final FollowRepository followRepository;
     private final HashTagRepository hashTagRepository;
     private final StyleHashTagService styleHashTagService;
@@ -144,7 +139,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
 
     // 히트 순서
     public Header<List<StyleHitListApiResponse>> styleHitList(Long sessionId) {
-        List<Style> styleList = baseRepository.findAll();
+        List<Style> styleList = styleRepository.findAll();
         List<String> stringList = hashTagRepository.HashTagNameTop5();
         List<StyleHitListApiResponse> styleListApiResponseHitList = styleList.stream()
                 .map(style -> {
@@ -164,7 +159,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     }
 
     public Header<List<StyleHitListApiResponse>> noStyleHitList() {
-        List<Style> styleList = baseRepository.findAll();
+        List<Style> styleList = styleRepository.findAll();
         List<String> stringList = hashTagRepository.HashTagNameTop5();
 
         List<StyleHitListApiResponse> styleListApiResponseHitList = styleList.stream()
@@ -288,7 +283,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     }
 
     public Header<List<StyleDetailListApiResponse>> detailList(Long sessionId){
-        List<Style> styleList = baseRepository.findAll();
+        List<Style> styleList = styleRepository.findAll();
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
@@ -314,7 +309,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
     // 여기까지 햇음
 
     public Header<List<StyleDetailListApiResponse>> noDetailList(){
-        List<Style> styleList = baseRepository.findAll();
+        List<Style> styleList = styleRepository.findAll();
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
@@ -418,7 +413,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
 
 
     public int delete(Long id){
-        Optional<Style> optionalStyle = baseRepository.findById(id);
+        Optional<Style> optionalStyle = styleRepository.findById(id);
         if(optionalStyle.isPresent()){
             styleRepository.delete(optionalStyle.get());
             return  1;
@@ -426,17 +421,9 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
         return 0;
     }
 
-//    public StyleApiResponse response(Style style){
-//        StyleApiResponse styleApiResponse = StyleApiResponse.builder()
-//                .id(style.getId())
-//                .content(style.getContent())
-//                .customerId(style.getCustomer().getId())
-//                .build();
-//        return styleApiResponse;
-//    }
 
     public Header<List<StyleApiResponse>> search(Pageable pageable){
-        Page<Style> styles = baseRepository.findAll(pageable);
+        Page<Style> styles = styleRepository.findAll(pageable);
         List<StyleApiResponse> styleApiResponseList = styles.stream()
                 .map(StyleApiResponse::new)
                 .collect(Collectors.toList());
@@ -451,7 +438,7 @@ public class StyleService extends BaseService<StyleApiRequest, StyleApiResponse,
 
     // 스타일 detail
     public Header<StyleDetailApiResponse> detail(Long styleId){
-        Style style = baseRepository.getById(styleId);
+        Style style = styleRepository.getById(styleId);
 
         List<StyleImg> styleImgList = style.getStyleImgList();
         List<StyleImgListApiResponse> styleImgListApiResponseList = styleImgList.stream()

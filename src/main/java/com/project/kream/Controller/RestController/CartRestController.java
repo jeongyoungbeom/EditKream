@@ -1,7 +1,5 @@
 package com.project.kream.Controller.RestController;
 
-import com.project.kream.Controller.CrudController;
-import com.project.kream.Model.Entity.Cart;
 import com.project.kream.Model.Header;
 import com.project.kream.Model.request.CartApiRequest;
 import com.project.kream.Model.response.CartApiResponse;
@@ -11,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class CartRestController extends CrudController<CartApiRequest, CartApiResponse, Cart> {
+public class CartRestController {
     private final CartService cartService;
 
     // 관심상품 등록
