@@ -1,8 +1,6 @@
 package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.Sales;
-import com.project.kream.Model.enumclass.PurchaseStatus2;
-import com.project.kream.Model.enumclass.PurchaseStatus3;
 import com.project.kream.Model.enumclass.SalesStatus2;
 import com.project.kream.Model.enumclass.SalesStatus3;
 import lombok.*;

@@ -4,6 +4,7 @@ import com.project.kream.Model.Entity.Withdrawal;
 import lombok.*;
 
 import java.time.LocalDateTime;
+
 @Getter
 public class WithdrawalListApiResponse {
     private Long id;

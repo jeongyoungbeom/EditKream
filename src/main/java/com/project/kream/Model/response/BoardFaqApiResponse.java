@@ -3,8 +3,8 @@ package com.project.kream.Model.response;
 import com.project.kream.Model.Entity.Board;
 import com.project.kream.Model.enumclass.BoardCategory;
 import lombok.*;
-
 import java.time.LocalDateTime;
+
 @Getter
 public class BoardFaqApiResponse {
     private Long id;

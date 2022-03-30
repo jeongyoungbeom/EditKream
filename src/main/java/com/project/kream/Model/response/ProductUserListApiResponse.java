@@ -1,12 +1,8 @@
 package com.project.kream.Model.response;
 
-import com.project.kream.Model.Entity.Product;
-import com.project.kream.Model.Entity.Purchase;
 import com.project.kream.Model.enumclass.Category;
 import com.project.kream.Model.enumclass.SubCategory;
 import lombok.*;
-
-import java.util.List;
 
 @Getter
 public class ProductUserListApiResponse {

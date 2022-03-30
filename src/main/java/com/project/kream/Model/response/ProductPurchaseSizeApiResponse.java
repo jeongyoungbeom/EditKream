@@ -1,6 +1,5 @@
 package com.project.kream.Model.response;
 
-import com.project.kream.Model.enumclass.PurchaseStatus1;
 import lombok.*;
 
 @Getter

@@ -1,6 +1,5 @@
 package com.project.kream.Model.response;
 
-import com.project.kream.Model.Entity.Customer;
 import com.project.kream.Model.Entity.Product;
 import com.project.kream.Model.Entity.Purchase;
 import com.project.kream.Model.enumclass.PurchaseStatus1;

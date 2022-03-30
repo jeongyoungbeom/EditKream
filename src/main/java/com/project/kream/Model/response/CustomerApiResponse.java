@@ -5,7 +5,6 @@ import com.project.kream.Model.enumclass.CustomerRank;
 import com.project.kream.Model.enumclass.CustomerRole;
 import com.project.kream.Model.enumclass.CustomerType;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

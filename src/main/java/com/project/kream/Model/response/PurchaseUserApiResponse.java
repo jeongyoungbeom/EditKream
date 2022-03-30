@@ -1,13 +1,11 @@
 package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.Purchase;
-import com.project.kream.Model.Entity.Sales;
 import com.project.kream.Model.enumclass.PurchaseStatus1;
 import com.project.kream.Model.enumclass.PurchaseStatus2;
 import lombok.*;
-
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Getter
 public class PurchaseUserApiResponse {

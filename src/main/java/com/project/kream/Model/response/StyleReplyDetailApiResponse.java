@@ -1,7 +1,5 @@
 package com.project.kream.Model.response;
 
-import com.project.kream.Model.Entity.Customer;
-import com.project.kream.Model.Entity.StyleCustomer;
 import com.project.kream.Model.Entity.StyleReply;
 import lombok.*;
 

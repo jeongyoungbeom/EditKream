@@ -5,9 +5,6 @@ import com.project.kream.Model.enumclass.Category;
 import com.project.kream.Model.enumclass.PostStatus;
 import com.project.kream.Model.enumclass.SubCategory;
 import lombok.*;
-
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.List;
 
 @Getter

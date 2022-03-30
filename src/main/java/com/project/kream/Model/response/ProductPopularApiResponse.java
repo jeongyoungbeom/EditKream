@@ -2,10 +2,7 @@ package com.project.kream.Model.response;
 
 import lombok.*;
 
-@Data
-@NoArgsConstructor
-@Builder
-@AllArgsConstructor
+@Getter
 public class ProductPopularApiResponse {
     private Long id;
     private String originFileName;

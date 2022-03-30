@@ -7,9 +7,7 @@ import com.project.kream.Model.Entity.Sales;
 import com.project.kream.Model.enumclass.SalesStatus1;
 import com.project.kream.Model.enumclass.SalesStatus2;
 import lombok.*;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 public class SalesUserApiResponse {

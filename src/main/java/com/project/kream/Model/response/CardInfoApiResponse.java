@@ -1,7 +1,6 @@
 package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.CardInfo;
-import com.project.kream.Model.Entity.Customer;
 import com.project.kream.Model.enumclass.CardFlag;
 import lombok.*;
 

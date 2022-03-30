@@ -2,10 +2,7 @@ package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.Cart;
 import com.project.kream.Model.Entity.Product;
-import com.project.kream.Model.Entity.Purchase;
 import lombok.*;
-
-import java.util.List;
 
 @Getter
 public class CustomerMypageCartApiResponse {

@@ -42,7 +42,6 @@ public class StyleService {
         StyleApiRequest styleApiRequest = request.getData();
         Style newStyle = styleRepository.save(styleApiRequest.toEntity(customerRepository.getById(styleApiRequest.getCustomerId())));
 
-
         List<MultipartFile> fileList = multipart.getFiles("files");
         String path = "/Users/soyounjeong/EditKream/src/main/resources/static/lib/styleImg";
 
@@ -287,7 +286,6 @@ public class StyleService {
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
                     List<StyleImgListApiResponse> styleImgListApiResponseList = style.getStyleImgList().stream()
                             .map(StyleImgListApiResponse::new).collect(Collectors.toList());
 
@@ -306,14 +304,12 @@ public class StyleService {
                 }).collect(Collectors.toList());
         return Header.OK(styleDetailListApiResponses);
     }
-    // 여기까지 햇음
 
     public Header<List<StyleDetailListApiResponse>> noDetailList(){
         List<Style> styleList = styleRepository.findAll();
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
                     List<StyleImgListApiResponse> styleImgListApiResponseList = style.getStyleImgList().stream()
                             .map(StyleImgListApiResponse::new).collect(Collectors.toList());
 
@@ -339,7 +335,6 @@ public class StyleService {
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
                     List<StyleImgListApiResponse> styleImgListApiResponseList = style.getStyleImgList().stream()
                             .map(StyleImgListApiResponse::new).collect(Collectors.toList());
 
@@ -366,7 +361,6 @@ public class StyleService {
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
                     List<StyleImgListApiResponse> styleImgListApiResponseList = style.getStyleImgList().stream()
                             .map(StyleImgListApiResponse::new).collect(Collectors.toList());
 
@@ -391,7 +385,6 @@ public class StyleService {
         List<StyleDetailListApiResponse> styleDetailListApiResponses = styleList.stream()
                 .map(style -> {
                     Customer customer = style.getCustomer();
-                    StyleCustomer styleCustomer = customer.getStyleCustomerList().get(0);
                     List<StyleImgListApiResponse> styleImgListApiResponseList = style.getStyleImgList().stream()
                             .map(StyleImgListApiResponse::new).collect(Collectors.toList());
 

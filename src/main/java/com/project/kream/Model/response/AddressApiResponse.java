@@ -1,10 +1,8 @@
 package com.project.kream.Model.response;
 
 import com.project.kream.Model.Entity.Address;
-import com.project.kream.Model.Entity.Customer;
 import com.project.kream.Model.enumclass.AddressFlag;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
