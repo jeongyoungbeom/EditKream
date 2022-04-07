@@ -41,7 +41,6 @@ public class StyleCustomerService {
         StyleCustomerApiRequest styleCustomerApiRequest = request.getData();
         StyleCustomer styleCustomer = styleCustomerRepository.findById(styleCustomerApiRequest.getId()).orElseThrow(() -> new IllegalArgumentException("데이터가 없습니다."));
         styleCustomer.update(styleCustomerApiRequest.getProfileName(), styleCustomerApiRequest.getName(), styleCustomerApiRequest.getIntro());
-
         return Header.OK(styleCustomerApiRequest.getId());
     }
 

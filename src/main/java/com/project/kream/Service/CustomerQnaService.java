@@ -7,12 +7,10 @@ import com.project.kream.Model.request.CustomerQnaApiRequest;
 import com.project.kream.Model.response.CustomerQnaApiResponse;
 import com.project.kream.Repository.CustomerQnaRepository;
 import com.project.kream.Repository.CustomerRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
